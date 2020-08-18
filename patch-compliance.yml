@@ -1,0 +1,263 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: |
+  This template centralises patch compliance information:
+  - Enable and configure AWS Config
+  - Configure AWS Systems Manager Patch Manager
+  - Configure AWS Sytems Manager resource data sync
+  - Create and distribute custom AWS Config conformance packs
+  - Create AWS Config Authorization Aggregator
+  - Create a partitioned Amazon Athena table for AWS Config data
+  - Create an AWS Lambda function to update the Athena Table
+  - Create Amazon Athena Queries
+  - Create and run AWS Lambda function to generate Amazon QuickSight dashboards
+Metadata: 
+  AWS::CloudFormation::Interface: 
+    ParameterGroups: 
+      - Label: 
+          default: "AWS Config"
+        Parameters: 
+          - ConfigBucket
+          - AllSupported
+          - IncludeGlobalResourceTypes
+          - ResourceTypes
+          - DeliveryChannelName
+          - Frequency
+          - TopicArn
+          - NotificationEmail          
+      - Label: 
+          default: "AWS Systems Manager Patch Manager"
+        Parameters: 
+          - PatchOperation
+    ParameterLabels: 
+      ConfigBucket: 
+        default: "S3 Bucket"
+      AllSupported:
+        default: Support all resource types
+      IncludeGlobalResourceTypes:
+        default: Include global resource types
+      ResourceTypes:
+        default: List of resource types if not all supported
+      DeliveryChannelName:
+        default: Configuration delivery channel name
+      Frequency:
+        default: Snapshot delivery frequency
+      TopicArn:
+        default: SNS topic name
+      NotificationEmail:
+        default: Notification Email (optional)
+      PatchOperation:
+        default: Scan or Install Patches
+
+Parameters: 
+  ConfigBucket: 
+    AllowedPattern: ^[0-9a-z]+([0-9a-z-\.]*[0-9a-z])$
+    ConstraintDescription: "Malformed input-Parameter ConfigBucket must follow rules for bucket naming. See https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html for more information."
+    MinLength: 3
+    MaxLength: 63
+    Type: String
+    Description: "Enter the name of the Amazon S3 bucket used to store AWS Config Data"
+  
+  AllSupported:
+    Type: String
+    Default: True
+    Description: Indicates whether to record all supported resource types.
+    AllowedValues:
+      - True
+      - False
+
+  IncludeGlobalResourceTypes:
+    Type: String
+    Default: True
+    Description: Indicates whether AWS Config records all supported global resource types.
+    AllowedValues:
+      - True
+      - False
+
+  ResourceTypes:
+    Type: List<String>
+    Description: A list of valid AWS resource types to include in this recording group, such as AWS::EC2::Instance or AWS::CloudTrail::Trail.
+    Default: <All>
+
+  DeliveryChannelName:
+    Type: String
+    Default: <Generated>
+    Description: The name of the delivery channel.
+
+  Frequency:
+    Type: String
+    Default: 24hours
+    Description: The frequency with which AWS Config delivers configuration snapshots.
+    AllowedValues:
+      - 1hour
+      - 3hours
+      - 6hours
+      - 12hours
+      - 24hours
+
+  TopicArn:
+    Type: String
+    Default: <New Topic>
+    Description: The Amazon Resource Name (ARN) of the Amazon Simple Notification Service (Amazon SNS) topic that AWS Config delivers notifications to.
+
+  NotificationEmail:
+    Type: String
+    Default: <None>
+    Description: Email address for AWS Config notifications (for new topics).
+
+  PatchOperation:
+    Type: String
+    Default: Scan
+    Description: Perform a scan or install patches
+    AllowedValues:
+      - Scan
+      - Install   
+
+  PatchRebootOption:
+    Type: String
+    Default: NoReboot
+    Description: Reboot behavior after a patch Install operation. If you choose NoReboot and patches are installed, the instance is marked as non-compliant until a subsequent reboot and scan.
+    AllowedValues:
+      - NoReboot
+      - RebootIfNeeded       
+
+Conditions:
+  IsAllSupported: !Equals
+    - !Ref AllSupported
+    - True
+  IsGeneratedDeliveryChannelName: !Equals
+    - !Ref DeliveryChannelName
+    - <Generated>
+  CreateTopic: !Equals
+    - !Ref TopicArn
+    - <New Topic>
+  CreateSubscription: !And
+    - !Condition CreateTopic
+    - !Not
+      - !Equals
+        - !Ref NotificationEmail
+        - <None>
+
+Mappings:
+  Settings:
+    FrequencyMap:
+      1hour   : One_Hour
+      3hours  : Three_Hours
+      6hours  : Six_Hours
+      12hours : Twelve_Hours
+      24hours : TwentyFour_Hours
+
+Resources:
+
+  ConfigTopic:
+    Condition: CreateTopic
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "config-topic-${AWS::AccountId}"
+      DisplayName: AWS Config Notification Topic
+
+  ConfigTopicPolicy:
+    Condition: CreateTopic
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics:
+        - !Ref ConfigTopic
+      PolicyDocument:
+        Statement:
+          - Sid: AWSConfigSNSPolicy
+            Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref ConfigTopic
+            Principal:
+              Service:
+                - config.amazonaws.com
+
+  EmailNotification:
+    Condition: CreateSubscription
+    Type: AWS::SNS::Subscription
+    Properties:
+      Endpoint: !Ref NotificationEmail
+      Protocol: email
+      TopicArn: !Ref ConfigTopic
+
+  ConfigRecorderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - config.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSConfigRole
+
+  ConfigRecorder:
+    Type: AWS::Config::ConfigurationRecorder
+    DependsOn:
+      - ConfigTopicPolicy
+    Properties:
+      RoleARN: !GetAtt ConfigRecorderRole.Arn
+      RecordingGroup:
+        AllSupported: !Ref AllSupported
+        IncludeGlobalResourceTypes: !Ref IncludeGlobalResourceTypes
+        ResourceTypes: !If
+          - IsAllSupported
+          - !Ref AWS::NoValue
+          - !Ref ResourceTypes
+
+  ConfigDeliveryChannel:
+    Type: AWS::Config::DeliveryChannel
+    DependsOn:
+      - ConfigTopicPolicy
+    Properties:
+      Name: !If
+        - IsGeneratedDeliveryChannelName
+        - !Ref AWS::NoValue
+        - !Ref DeliveryChannelName
+      ConfigSnapshotDeliveryProperties:
+        DeliveryFrequency: !FindInMap
+          - Settings
+          - FrequencyMap
+          - !Ref Frequency
+      S3BucketName: !Ref ConfigBucket
+      SnsTopicARN: !If
+        - CreateTopic
+        - !Ref ConfigTopic
+        - !Ref TopicArn
+
+  UpdateSSMAgentAssociation:
+    Type: AWS::SSM::Association
+    Properties:
+      AssociationName: UpdateSSMAgent
+      Name: AWS-UpdateSSMAgent
+      ScheduleExpression: cron(0 2 ? * SUN *)      
+      Targets:
+        - Key: InstanceIds
+          Values:
+            - "*"
+      MaxConcurrency: 20%
+      MaxErrors: 5%
+      WaitForSuccessTimeoutSeconds: 300
+  
+  RunPatchBaselineAssociation:
+    Type: AWS::SSM::Association
+    Properties:
+      AssociationName: RunPatchBaseline
+      Name: AWS-RunPatchBaseline   
+      Parameters:
+        Operation:
+          - !Ref PatchOperation
+        RebootOption:
+          - !Ref PatchRebootOption    
+      Targets:
+        - Key: InstanceIds
+          Values:
+            - "*"
+      MaxConcurrency: 20%
+      MaxErrors: 5%
+      WaitForSuccessTimeoutSeconds: 600

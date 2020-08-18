@@ -1,0 +1,47 @@
+###############################################################################################
+#
+#   Conformance Pack:
+#     Checks instances are managed by SSM, have an association and are compliant with patching
+#
+#    This pack contains AWS Config rules based best practices for patching
+#
+###############################################################################################
+
+Resources:
+  EC2InstanceManagedBySystemsManager:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: EC2InstanceManagedBySystemsManager
+      Description: >- 
+        Checks whether the Amazon EC2 instances in your account are managed by AWS Systems Manager.
+      Scope:
+        ComplianceResourceTypes:
+        - "AWS::EC2::Instance"
+        - "AWS::SSM::ManagedInstanceInventory"
+      Source:
+        Owner: AWS
+        SourceIdentifier: EC2_INSTANCE_MANAGED_BY_SSM
+  EC2ManagedInstanceAssociationComplianceStatusCheck:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: EC2ManagedInstanceAssociationComplianceStatusCheck
+      Description: >- 
+        Checks whether the compliance status of the AWS Systems Manager association compliance is COMPLIANT or NON_COMPLIANT after the association execution on the instance. The rule is compliant if the field status is COMPLIANT.
+      Scope:
+        ComplianceResourceTypes:
+        - "AWS::SSM::AssociationCompliance"
+      Source:
+        Owner: AWS
+        SourceIdentifier: EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK
+  EC2ManagedInstancePatchComplianceStatusCheck:
+    Type: AWS::Config::ConfigRule
+    Properties:
+      ConfigRuleName: EC2ManagedInstancePatchComplianceStatusCheck
+      Description: >- 
+        Checks whether the compliance status of the AWS Systems Manager patch compliance is COMPLIANT or NON_COMPLIANT after the patch installation on the instance. The rule is compliant if the field status is COMPLIANT.      
+      Scope:
+        ComplianceResourceTypes:
+        - "AWS::SSM::PatchCompliance"
+      Source:
+        Owner: AWS
+        SourceIdentifier: EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK    
