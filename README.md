@@ -12,7 +12,7 @@ The information from AWS Config and AWS Systems Manager Inventory is collected i
 
 Simplify installation, configuration and analysis of patch compliance information using data from AWS Config and AWS Systems Manager. Using data from AWS Config also allows for the analysis of unmanaged instances or instances that have been stopped or terminated. 
 
-## Resources Created
+## Resources Created in Deployment Account
 
 Logical ID | Type
 ---------- | ----
@@ -48,6 +48,25 @@ QuickSight | Custom::Function
 QuickSightFunction | AWS::Lambda::Function
 QuicksightLambdaExecutionRole | AWS::IAM::Role
 StackSet | AWS::CloudFormation::StackSet
+
+## Resources Created in Target Accounts and Regions
+Logical ID | Type
+---------- | ----
+ConfigDeliveryChannel | StackSet-patch-compliance-Stackset-a80e2dfd-515d-4d45-a812-7956b0448688-ConfigDeliveryChannel-WQG3LXIYJX2N	
+ConfigRecorder | StackSet-patch-compliance-Stackset-a80e2dfd-515d-4d45-a812-7956b0448688-ConfigRecorder-JBRZM5T3KHVV	
+ConfigRecorderRole | StackSet-patch-compliance-Stack-ConfigRecorderRole-1AAVE31N71S9B	
+ConfigTopic | arn:aws:sns:eu-west-1:180304385487:config-topic-180304385487	
+ConfigTopicPolicy | StackSet-patch-compliance-Stackset-a80e2dfd-515d-ConfigTopicPolicy-14346OKPIL4ZW	
+EC2Tagging | CustomResourcePhysicalID	
+EC2TaggingFunction | StackSet-patch-compliance-Stack-EC2TaggingFunction-JVSP6OYIDRR3	
+GatherSoftwareInventoryAssociation | bab94214-19cb-4a46-838e-25ecfd826bc3	
+LambdaExecutionRole | StackSet-patch-compliance-Stac-LambdaExecutionRole-TTPJARPHC1SS	
+PatchAWSSSMMaintenanceWindow | mw-080056c538ea063a0	
+PatchAWSSSMMaintenanceWindowTarget | 1e423856-cd15-4314-baf4-1b8265ce939d	
+PatchAWSSSMMaintenanceWindowTask | 37e5fcb2-f557-4f33-a0d1-e8c11179a550	
+ResourceDataSync | patch-compliance-sync	
+RunPatchBaselineAssociation | b8023097-416a-4e2b-a71c-a5129285150a	
+UpdateSSMAgentAssociation | 037581d5-18fb-4d15-8a89-d1812f7d94cc
 
 ## Prerequisites
 All instances must be managed.
