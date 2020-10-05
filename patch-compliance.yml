@@ -8,7 +8,7 @@ Description: |
   - Create a partitioned Amazon Athena table for AWS Config data
   - Create an AWS Lambda function to update the Athena Table
   - Create Amazon Athena Queries
-  - Create and run AWS Lambda function to generate Amazon QuickSight dashboards
+  - Create and run AWS Lambda function to generate Amazon QuickSight Data Sources and Data Sets
 Metadata: 
   AWS::CloudFormation::Interface: 
     ParameterGroups: 
@@ -345,7 +345,7 @@ Resources:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaComplianceItemTableName # Change Table Name
+        Name: !Ref AthenaComplianceItemTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -380,7 +380,7 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:ComplianceItem/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:ComplianceItem/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
@@ -390,7 +390,7 @@ Resources:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaInstanceInformationTableName # Change Table Name
+        Name: !Ref AthenaInstanceInformationTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -418,7 +418,7 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:InstanceInformation/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:InstanceInformation/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe    
@@ -428,7 +428,7 @@ Resources:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaInstanceDetailedInformationTableName # Change Table Name
+        Name: !Ref AthenaInstanceDetailedInformationTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -454,7 +454,7 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:InstanceDetailedInformation/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:InstanceDetailedInformation/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
@@ -464,7 +464,7 @@ Resources:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaWindowsRoleTableName # Change Table Name
+        Name: !Ref AthenaWindowsRoleTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -494,7 +494,7 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:WindowsRole/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:WindowsRole/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
@@ -504,7 +504,7 @@ Resources:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaTagTableName # Change Table Name
+        Name: !Ref AthenaTagTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -525,7 +525,7 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:Tag/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:Tag/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
@@ -535,7 +535,7 @@ Resources:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaServiceTableName # Change Table Name
+        Name: !Ref AthenaServiceTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -561,7 +561,7 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:Service/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:Service/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
@@ -571,7 +571,7 @@ Resources:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaResourceGroupTableName # Change Table Name
+        Name: !Ref AthenaResourceGroupTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -597,17 +597,17 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:ResourceGroup/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:ResourceGroup/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
-  AthenaWindowsUpdateTable: # Change Resource Name
+  AthenaWindowsUpdateTable:
     Type: AWS::Glue::Table
     Properties:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaWindowsUpdateTableName # Change Table Name
+        Name: !Ref AthenaWindowsUpdateTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -628,17 +628,17 @@ Resources:
           - {Name: InstalledBy, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:WindowsUpdate/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:WindowsUpdate/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe                    
-  AthenaApplicationTable: # Change Resource Name
+  AthenaApplicationTable:
     Type: AWS::Glue::Table
     Properties:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaApplicationTableName # Change Table Name
+        Name: !Ref AthenaApplicationTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -667,17 +667,17 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:Application/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:Application/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe            
-  AthenaAWSComponentTable: # Change Resource Name
+  AthenaAWSComponentTable:
     Type: AWS::Glue::Table
     Properties:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaAWSComponentTableName # Change Table Name
+        Name: !Ref AthenaAWSComponentTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -706,17 +706,17 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:AWSComponent/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:AWSComponent/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe        
-  AthenaNetworkTable: # Change Resource Name
+  AthenaNetworkTable:
     Type: AWS::Glue::Table
     Properties:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaNetworkTableName # Change Table Name
+        Name: !Ref AthenaNetworkTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -741,17 +741,17 @@ Resources:
           - {Name: IPV6, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:Network/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:Network/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe               
-  AthenaPatchSummaryTable: # Change Resource Name
+  AthenaPatchSummaryTable:
     Type: AWS::Glue::Table
     Properties:
       DatabaseName: !Ref AthenaDatabase
       CatalogId: !Ref AWS::AccountId
       TableInput:
-        Name: !Ref AthenaPatchSummaryTableName # Change Table Name
+        Name: !Ref AthenaPatchSummaryTableName 
         TableType: EXTERNAL_TABLE
         Parameters:
           CrawlerSchemaDeserializerVersion': "1.0"
@@ -784,7 +784,7 @@ Resources:
           - {Name: schemaVersion, Type: string}
           Compressed: false
           InputFormat: org.apache.hadoop.mapred.TextInputFormat
-          Location: !Sub "s3://${DataSyncBucket}/AWS:PatchSummary/" # Change Location
+          Location: !Sub "s3://${DataSyncBucket}/AWS:PatchSummary/"
           OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
           SerdeInfo:
             SerializationLibrary: org.openx.data.jsonserde.JsonSerDe             
@@ -1117,7 +1117,6 @@ Resources:
       Runtime: python3.7
       Timeout: 600
       Role: !GetAtt QuicksightLambdaExecutionRole.Arn    
-
   StackSet:
     Type: AWS::CloudFormation::StackSet
     Properties: 
