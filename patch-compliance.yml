@@ -30,6 +30,9 @@ Metadata:
       - Label: 
           default: "Systems Manager"
         Parameters: 
+          - MaintenanceWindowSchedule
+          - MaintenanceWindowDuration
+          - MaintenanceWindowScheduleOffset
           - PatchOperation 
           - PatchRebootOption   
       - Label: 
@@ -68,6 +71,21 @@ Metadata:
       PrincipalOrgID: 
         default: Organization ID beginning o- , use CLI commmand to retrieve ID, aws organizations describe-organization
 Parameters:  
+  MaintenanceWindowSchedule: 
+    MinLength: 1
+    MaxLength: 256
+    Type: String          
+    Default: cron(0 2 ? * TUE#2 *)
+  MaintenanceWindowDuration: 
+    MinValue: 1
+    MaxValue: 24
+    Type: Number          
+    Default: 4
+  MaintenanceWindowScheduleOffset: 
+    MinValue: 1
+    MaxValue: 6
+    Type: Number          
+    Default: 4
   QuickSightUser:
     Description: QuickSight User      
     Type: String    
@@ -856,7 +874,7 @@ Resources:
 
           TABLE_NAME = '${AthenaTableName}'
           DATABASE_NAME = '${AthenaDatabaseName}'
-          ATHENA_BUCKET = '${AthenaBucket}'
+          ATHENA_BUCKET = 's3://${AthenaBucket}'
           ACCOUNT_ID = None # Determined at runtime
           LATEST_PARTITION_VALUE = 'latest'
 
@@ -913,16 +931,13 @@ Resources:
 
           def execute_query(query):
               logger.info('Executing query: ' +query)
-              query_output_location = 's3://{ATHENA_BUCKET}'.format(
-                  account_id=ACCOUNT_ID,
-                  region=os.environ['AWS_REGION'])
               start_query_response = athena.start_query_execution(
                   QueryString=query,
                   QueryExecutionContext={
                       'Database': DATABASE_NAME
                   },
                   ResultConfiguration={
-                      'OutputLocation': query_output_location,
+                      'OutputLocation': ATHENA_BUCKET,
                   }
               )
               logger.info('Query started')
@@ -1150,6 +1165,15 @@ Resources:
         -
           ParameterKey: NotificationEmail
           ParameterValue: !Ref NotificationEmail 
+        -
+          ParameterKey: MaintenanceWindowSchedule
+          ParameterValue: !Ref MaintenanceWindowSchedule
+        -
+          ParameterKey: MaintenanceWindowDuration
+          ParameterValue: !Ref MaintenanceWindowDuration
+        -
+          ParameterKey: MaintenanceWindowScheduleOffset
+          ParameterValue: !Ref MaintenanceWindowScheduleOffset                    
       PermissionModel: SELF_MANAGED
       StackInstancesGroup:
         -
@@ -1213,6 +1237,22 @@ Resources:
                 default: "SSM Inventory Sync Bucket Region (see outputs of parent stack)"
 
         Parameters: 
+          MaintenanceWindowSchedule: 
+            MinLength: 1
+            MaxLength: 256
+            Type: String          
+            Default: cron(0 2 ? * TUE#2 *)
+          MaintenanceWindowDuration: 
+            MinValue: 1
+            MaxValue: 24
+            Type: Number          
+            Default: 4
+          MaintenanceWindowScheduleOffset: 
+            MinValue: 1
+            MaxValue: 6
+            Type: Number          
+            Default: 4
+
           ConfigBucket: 
             AllowedPattern: ^[0-9a-z]+([0-9a-z-\.]*[0-9a-z])$
             ConstraintDescription: "Malformed input-Parameter ConfigBucket must follow rules for bucket naming. See https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html for more information."
@@ -1466,11 +1506,10 @@ Resources:
                 Description: Maintenance Window for Patching
                 AllowUnassociatedTargets: false
                 Cutoff: 1
-                Schedule: cron(0 2 ? * TUE#2 *)
-                Duration: 4
-                ScheduleOffset: 4
+                Schedule: !Ref MaintenanceWindowSchedule
+                Duration: !Ref MaintenanceWindowDuration
+                ScheduleOffset: !Ref MaintenanceWindowScheduleOffset
                 Name: PatchingMaintenanceWindow
-
           PatchAWSSSMMaintenanceWindowTarget:
             Type: 'AWS::SSM::MaintenanceWindowTarget'
             Properties:
@@ -1641,7 +1680,7 @@ Resources:
                 SyncFormat: JsonSerDe                  
   QuickSight:
     Type: Custom::Function
-    DependsOn: LambdaTrigger
+    DependsOn: StackSet
     Properties:
       ServiceToken: !GetAtt QuickSightFunction.Arn
       Region: !Ref "AWS::Region"
