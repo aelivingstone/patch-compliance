@@ -33,8 +33,14 @@ CREATE OR REPLACE VIEW ConfigMIC AS
         AND t2.instance.resourceID = split(configurationItem.resourceid,'/')[2]
     GROUP BY split(configurationItem.resourceid,'/')[2]
 ```
+## Prerequisites
+* To gather data using AWS Systems Manager, the instance has to be a [Managed Instance](https://docs.aws.amazon.com/systems-manager/latest/userguide/managed_instances.html)
+* [Setup QuickSight](https://docs.aws.amazon.com/quicksight/latest/user/setup-quicksight-for-existing-aws-account.html)
+* [Grant self-managed permissions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html) for StackSets
 
 ## Deployment Instructions
+1. Upload **quicksight.zip** to an S3 Bucket in your administrator account
+1. Deploy patch-compliance.yml using CloudFromation
 
 ### Help with parameters
 You can check your QuickSight User by hovering over your account icon in the top right corner or by clicking on the icon and selecting Manage QuickSight.
@@ -42,10 +48,40 @@ You can check your QuickSight User by hovering over your account icon in the top
 
 You can retrieve your PrincipalOrgID by using the CLI command: `aws organizations describe-organization` or by going to **AWS Organizations** > **Organize accounts** where you'll see it in the ARN on the right-hand side in the format **o-xxxxxxxxxx**. 
 
-Before you choose which regions to deploy to, you may want to check whch regions are enabled by going to **My Account** and scrolling down to AWS Regions. Choosing a region that you do not have enabled will result in a failure.
+Before you choose which regions to deploy to, you may want to check which regions are enabled by going to **My Account** and scrolling down to AWS Regions. Choosing a region that you do not have enabled will result in a failure.
 ![Regions Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/regions.png)
 
+## Preparing QuickSight for your Datasets
+* Open QuickSight
+* Choose **Datasets**, you should see something like this:
+![QuickSight Datasets Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/quicksight_datasets.png)
+* Click on **Patch Compliance Data Set**:
+![QuickSight Patch Compliance Dataset Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance_data_set.png)
+* Click on the **Create analysis** button
+* You now have a blank analysis:
+![QuickSight Blank Analysis Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/analysis.png)
+* Click on the edit icon to the right of **Data Set**
+* Click **Add data set**
+* Select **Patch Compliance by Tag**
+* Click **Select**
+* In the drop down below **Data set** you can now choose which dataset to use for creating visualizations
 
+## The Data
+The two datasets are made up of a mixture of views and tables that have been left joined to the **configmic** view. This view contains all the instances in all the accounts and regions along with whether or not it's compliance status as a managed instance is compliant or not (configmiccompliancestatus) as per the **ec2-instance-managed-by-systems-manager** check in AWS Config. 
+
+The **configpc** view contains the same instances and whether or not they are compliant (configpcstatus) with patching as per the **ec2-managedinstance-patch-compliance-status-check** in AWS Config. This is useful because it will continue to show the compliance status, even if the instance has been stopped. The latest data from Systems Manager will not include data from stopped instances.
+
+The **Patch** view is a filtered version of the **aws_compliance_item** where the compliance type is equal to **patch**. This is included because the QuickSight API does not currently support creating view using custom SQL queries. This data is from Systems Manager and contains information about each patch related to the instance.
+
+All of the other Athena tables represent data from Systems Manager. Not all of them are included in the datasets, but they have been included so that you can query directly against them in Athena or create your own datasets.
+
+The reason for creating multiple datasets is because joining many tables with a one to many relationship creates massive temporary tables that would timeout beyond all but the smallest data sets. 
+
+The first data set contains information about the instances and their patching status to an individual patch level. Because this uses Sysems Manager data, you cannot display individual patch data about instances that are stopped:
+![Patch Compliance Data Set Joins Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance_data_set_joins.png)
+
+The second data set just contain the compliance data from AWS Config, joined with instance tags, this allows you to create visualizations on patching and managed instance compliance based on tag keys and values so that you can view compliance based on owner, business unit,  workload, stack or whatever you are using for tagging.
+![Patch Compliance by Tag Data Set Joins Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance_by_tag_dataset_joins.png)
 
 ## Resources Created in Deployment Account
 Logical ID | Type
@@ -101,9 +137,6 @@ PatchAWSSSMMaintenanceWindowTask | AWS::SSM::MaintenanceWindowTask
 ResourceDataSync | AWS::SSM::ResourceDataSync	
 RunPatchBaselineAssociation | AWS::SSM::Association	
 UpdateSSMAgentAssociation | AWS::SSM::Association	
-
-## Prerequisites
-All instances must be managed.
 
 ## License Summary
 This reference code is made available under the MIT-0 license. See the LICENSE file.
