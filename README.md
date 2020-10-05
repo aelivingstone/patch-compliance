@@ -5,15 +5,15 @@ This reference architecture creates AWS Systems Manager Associations to [automat
 The information from AWS Config and AWS Systems Manager Inventory is collected in S3 buckets in the deployment account and Athena Tables and Views are created to analyse the data using Amazon QuickSight. An AWS Lambda function [repairs](https://docs.aws.amazon.com/athena/latest/ug/msck-repair-table.html) the tables and creates an Athena datasource and two datasets for use in QuickSight, joining multiple tables for further insight. An additional AWS Lambda function is created to partition data from AWS Config.
 
 ## High Level Architecture
-
 ![Architecture Diagram](https://github.com/aelivingstone/patch-compliance/blob/master/images/Diagram.png)
 
-## Motivation
+## Technologies
+![Technologies Diagram](https://github.com/aelivingstone/patch-compliance/blob/master/images/Technology.png)
 
+## Motivation
 Simplify installation, configuration and analysis of patch compliance information using data from AWS Config and AWS Systems Manager. Using data from AWS Config also allows for the analysis of unmanaged instances or instances that have been stopped or terminated. 
 
 ## Resources Created in Deployment Account
-
 Logical ID | Type
 ---------- | ----
 AthenaAWSComponentTable | AWS::Glue::Table
