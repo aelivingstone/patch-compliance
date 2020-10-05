@@ -36,7 +36,16 @@ CREATE OR REPLACE VIEW ConfigMIC AS
 
 ## Deployment Instructions
 
+### Help with parameters
+You can check your QuickSight User by hovering over your account icon in the top right corner or by clicking on the icon and selecting Manage QuickSight.
 ![QuickSight Users Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/quicksight_user.png)
+
+You can retrieve your PrincipalOrgID by using the CLI command: `aws organizations describe-organization` or by going to **AWS Organizations** > **Organize accounts** where you'll see it in the ARN on the right-hand side in the format **o-xxxxxxxxxx**. 
+
+Before you choose which regions to deploy to, you may want to check whch regions are enabled by going to **My Account** and scrolling down to AWS Regions. Choosing a region that you do not have enabled will result in a failure.
+![Regions Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/regions.png)
+
+
 
 ## Resources Created in Deployment Account
 Logical ID | Type
