@@ -8,6 +8,47 @@ The information from AWS Config and AWS Systems Manager Inventory is collected i
 
 ![Architecture Diagram](https://github.com/aelivingstone/patch-compliance/blob/master/images/Diagram.png)
 
+## Motivation
+
+Simplify installation, configuration and analysis of patch compliance information using data from AWS Config and AWS Systems Manager. Using data from AWS Config also allows for the analysis of unmanaged instances or instances that have been stopped or terminated. 
+
+## Resources Created
+
+Logical ID | Type
+---------- | ----
+AthenaAWSComponentTable | AWS::Glue::Table
+AthenaApplicationTable | AWS::Glue::Table
+AthenaBucket | AWS::S3::Bucket
+AthenaComplianceItemTable | AWS::Glue::Table
+AthenaConfigMICVNamedQuery | AWS::Athena::NamedQuery
+AthenaDatabase | AWS::Glue::Database
+AthenaInstanceDetailedInformationTable | AWS::Glue::Table
+AthenaInstanceInformationTable | AWS::Glue::Table
+AthenaNetworkTable | AWS::Glue::Table
+AthenaPatchSummaryTable | AWS::Glue::Table
+AthenaResourceGroupTable | AWS::Glue::Table
+AthenaServiceTable | AWS::Glue::Table
+AthenaTable | AWS::Glue::Table
+AthenaTagTable | AWS::Glue::Table
+AthenaWindowsRoleTable | AWS::Glue::Table
+AthenaWindowsUpdateTable | AWS::Glue::Table
+ConfigAggregator | AWS::Config::ConfigurationAggregator
+ConfigAggregatorRole | AWS::IAM::Role
+ConfigBucket | AWS::S3::Bucket
+ConfigBucketPolicy | AWS::S3::BucketPolicy
+CustomResourceLambdaFunction | AWS::Lambda::Function
+DataSyncBucket | AWS::S3::Bucket
+DataSyncBucketPolicy | AWS::S3::BucketPolicy
+LambdaExecutionRole | AWS::IAM::Role
+LambdaIAMRole | AWS::IAM::Role
+LambdaInvokePermission | AWS::Lambda::Permission
+LambdaTrigger | Custom::LambdaTrigger
+PartitioningFunction | AWS::Lambda::Function
+QuickSight | Custom::Function
+QuickSightFunction | AWS::Lambda::Function
+QuicksightLambdaExecutionRole | AWS::IAM::Role
+StackSet | AWS::CloudFormation::StackSet
+
 ## Prerequisites
 All instances must be managed.
 
