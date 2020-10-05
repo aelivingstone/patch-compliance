@@ -72,16 +72,19 @@ Metadata:
         default: Organization ID beginning o- , use CLI commmand to retrieve ID, aws organizations describe-organization
 Parameters:  
   MaintenanceWindowSchedule: 
+    Description: Use Cron: https://docs.aws.amazon.com/systems-manager/latest/userguide/reference-cron-and-rate-expressions.html
     MinLength: 1
     MaxLength: 256
     Type: String          
     Default: cron(0 2 ? * TUE#2 *)
   MaintenanceWindowDuration: 
+    Description: The duration of the maintenance window in hours. 
     MinValue: 1
     MaxValue: 24
     Type: Number          
     Default: 4
   MaintenanceWindowScheduleOffset: 
+    Description: Specify the number of schedule offset days for a maintenance window 
     MinValue: 1
     MaxValue: 6
     Type: Number          
@@ -1058,7 +1061,7 @@ Resources:
                     NotificationConfiguration={}
                 )
                 print("Delete request completed....")
-      Runtime: python3.6
+      Runtime: python3.7
       Timeout: 600
   LambdaTrigger:
     Type: 'Custom::LambdaTrigger'
@@ -1116,7 +1119,7 @@ Resources:
           - Effect: Allow
             Action:
             - s3:ListBucket
-            Resource: !Sub "${DataSyncBucket.Arn}/*"
+            Resource: !Sub "${DataSyncBucket.Arn}"
           - Effect: Allow
             Action: quicksight:*
             Resource: "*"              
