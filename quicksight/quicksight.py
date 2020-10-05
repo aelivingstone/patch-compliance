@@ -74,7 +74,8 @@ def quicksight_handler(event, context):
     CONFIGPC_TABLE = event['ResourceProperties']['ConfigPCTable']
     PATCH_TABLE = event['ResourceProperties']['PatchTable']  
     QUICKSIGHT_USER = event['ResourceProperties']['QuickSightUser']   
-
+    responseData = {}
+    
     if event['RequestType'] == 'Delete':     
         response = client.delete_data_set(
             AwsAccountId=ACCOUNT_ID,
@@ -2028,8 +2029,7 @@ def quicksight_handler(event, context):
             ImportMode='SPICE',
         )
         logger.info ('Create Data Set: %s', response)  
-        patchingTagDataset = response['Arn']  
-        responseData = {}
+        patchingTagDataset = response['Arn']         
         responseData['patchingDataset'] = patchingDataset    
         responseData['patchingTagDataset'] = patchingTagDataset
 
