@@ -75,7 +75,7 @@ def quicksight_handler(event, context):
     PATCH_TABLE = event['ResourceProperties']['PatchTable']  
     QUICKSIGHT_USER = event['ResourceProperties']['QuickSightUser']   
     responseData = {}
-    
+
     if event['RequestType'] == 'Delete':     
         response = client.delete_data_set(
             AwsAccountId=ACCOUNT_ID,
@@ -95,21 +95,15 @@ def quicksight_handler(event, context):
 
     if event['RequestType'] == 'Create' or event['RequestType'] == 'Update':
         # Need to run MSCK REPAIR TABLE on all tables https://docs.aws.amazon.com/athena/latest/ug/msck-repair-table.html
-        query = 'MSCK REPAIR TABLE ' +DATABASE + '.' +AWS_APPLICATION_TABLE + ';'
-        response = athena.start_query_execution(
-            QueryExecutionContext={
-                'Database': DATABASE,
-            },        
-            QueryString=query,
-            ResultConfiguration={
-                'OutputLocation': ATHENA_S3_BUCKET,
-            }
-        )
-        logger.info ('MSCK REPAIR AWS_APPLICATION_TABLE: %s', response)
-        logger.info ('Query: ' +query)
         response = athena.start_query_execution(
             QueryExecutionContext={'Database': DATABASE,},        
-            QueryString='MSCK REPAIR TABLE ' +DATABASE + '.' +AWS_AWS_COMPONENT_TABLE + ';',
+            QueryString='MSCK REPAIR TABLE ' +DATABASE + '.' +AWS_APPLICATION_TABLE,
+            ResultConfiguration={'OutputLocation': ATHENA_S3_BUCKET,}
+        )
+        logger.info ('MSCK REPAIR AWS_APPLICATION_TABLE: %s', response)
+        response = athena.start_query_execution(
+            QueryExecutionContext={'Database': DATABASE,},        
+            QueryString='MSCK REPAIR TABLE ' +DATABASE + '.' +AWS_AWS_COMPONENT_TABLE,
             ResultConfiguration={'OutputLocation': ATHENA_S3_BUCKET,}
         )
         logger.info ('MSCK REPAIR AWS_AWS_COMPONENT_TABLE: %s', response)
