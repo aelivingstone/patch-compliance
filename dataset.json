@@ -1,0 +1,555 @@
+{
+    "Status": 200,
+    "DataSet": {
+        "Arn": "arn:aws:quicksight:eu-west-1:180304385487:dataset/4e526ac3-6c8c-4c9e-961e-497697ab2600",
+        "DataSetId": "4e526ac3-6c8c-4c9e-961e-497697ab2600",
+        "Name": "New custom SQL",
+        "CreatedTime": "2020-09-22T21:22:15.879000+01:00",
+        "LastUpdatedTime": "2020-09-23T12:21:29.011000+01:00",
+        "PhysicalTableMap": {
+            "7b955de2-306e-4896-b192-a7453ecd2cc6": {
+                "CustomSql": {
+                    "DataSourceArn": "arn:aws:quicksight:eu-west-1:180304385487:datasource/18e7772b-303e-4f2f-ab4b-91cb22cbb18c",
+                    "Name": "Patched",
+                    "SqlQuery": "SELECT MAX(dt) as ConfigPCDate,  \nsplit(configurationItem.resourceid,'/')[3] as ConfigPCInstanceID, \nMAX(json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-managedinstance-patch-compliance-status-check[^}.]*\\}'), '$.compliancetype')) as ConfigPCStatus\nFROM patch_compliance.aws_config_snapshot\nCROSS JOIN UNNEST(configurationitems) AS t1(configurationItem)\nWHERE regexp_like(configurationItem.configuration, '\\{[^}{.]*ec2-managedinstance-patch-compliance-status-check[^}.]*\\}')\nAND configurationItem.resourcetype = 'AWS::Config::ResourceCompliance'\nGROUP BY split(configurationItem.resourceid,'/')[3]\nORDER BY MAX(dt) DESC",
+                    "Columns": [
+                        {
+                            "Name": "ConfigPCDate",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ConfigPCInstanceID",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ConfigPCStatus",
+                            "Type": "STRING"
+                        }
+                    ]
+                }
+            },
+            "823eee35-42aa-4bba-b605-22cacb1e47ae": {
+                "CustomSql": {
+                    "DataSourceArn": "arn:aws:quicksight:eu-west-1:180304385487:datasource/18e7772b-303e-4f2f-ab4b-91cb22cbb18c",
+                    "Name": "Managed",
+                    "SqlQuery": "SELECT MAX(dt) as ConfigMICDate, \nMAX(configurationItem.awsaccountid) as ConfigMICAccountID, \nMAX(configurationItem.awsregion) as ConfigMICRegion, \nsplit(configurationItem.resourceid,'/')[2] as ConfigMICInstanceID, \nMAX(instance.tags['name']) as ConfigMICName,\nMAX(json_extract_scalar(instance.configuration, '$.state.name')) as ConfigMICState,\nMAX(json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-instance-managed-by-systems-manager[^}.]*\\}'), '$.compliancetype')) as ConfigMICComplianceStatus\nFROM patch_compliance.aws_config_snapshot\nCROSS JOIN UNNEST(configurationitems) AS t1(configurationItem)\nCROSS JOIN UNNEST(configurationitems) AS t2(instance)\nWHERE regexp_like(configurationItem.configuration, '\\{[^}{.]*ec2-instance-managed-by-systems-manager[^}.]*\\}')\nAND configurationItem.resourcetype = 'AWS::Config::ResourceCompliance'\nAND t2.instance.resourceID = split(configurationItem.resourceid,'/')[2]\nGROUP BY split(configurationItem.resourceid,'/')[2]\nORDER BY MAX(dt) DESC",
+                    "Columns": [
+                        {
+                            "Name": "ConfigMICDate",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ConfigMICAccountID",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ConfigMICRegion",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ConfigMICInstanceID",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ConfigMICName",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ConfigMICState",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ConfigMICComplianceStatus",
+                            "Type": "STRING"
+                        }
+                    ]
+                }
+            },
+            "e6a92aef-7b78-4601-87f3-f3233e016586": {
+                "RelationalTable": {
+                    "DataSourceArn": "arn:aws:quicksight:eu-west-1:180304385487:datasource/18e7772b-303e-4f2f-ab4b-91cb22cbb18c",
+                    "Schema": "patch_compliance",
+                    "Name": "aws_instance_information",
+                    "InputColumns": [
+                        {
+                            "Name": "platformname",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "platformversion",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "agenttype",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "agentversion",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "instanceid",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "instancestatus",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "computername",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "ipaddress",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "platformtype",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "resourceid",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "capturetime",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "schemaversion",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "accountid",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "region",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "resourcetype",
+                            "Type": "STRING"
+                        }
+                    ]
+                }
+            },
+            "f4277b57-5a4e-4b55-a8eb-160d1d8480f0": {
+                "CustomSql": {
+                    "DataSourceArn": "arn:aws:quicksight:eu-west-1:180304385487:datasource/18e7772b-303e-4f2f-ab4b-91cb22cbb18c",
+                    "Name": "PatchComplianceItem",
+                    "SqlQuery": "SELECT Status AS PatchStatus,\nInstalledTime AS PatchInstalledTime,\nExecutionType AS PatchExecutionType,\nPatchSeverity AS PatchPatchSeverity,\nTitle AS PatchTitle,\nSeverity AS PatchSeverity,\nExecutionTime AS PatchExecutionTime,\nComplianceType AS PatchComplianceType,\nClassification AS PatchClassification,\nDocumentVersion AS PatchDocumentVersion,\nId AS PatchId,\nPatchState AS PatchPatchState,\nPatchBaselineId AS PatchPatchBaselineId,\nDocumentName AS PatchDocumentName,\nPatchGroup AS PatchPatchGroup,\nExecutionId AS PatchExecutionId,\nresourceId AS PatchresourceId,\ncaptureTime AS PatchcaptureTime,\nschemaVersion AS PatchschemaVersion \nFROM \"patch_compliance\".\"aws_compliance_item\" \nWHERE compliancetype = 'Patch'",
+                    "Columns": [
+                        {
+                            "Name": "PatchStatus",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchInstalledTime",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchExecutionType",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchPatchSeverity",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchTitle",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchSeverity",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchExecutionTime",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchComplianceType",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchClassification",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchDocumentVersion",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchId",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchPatchState",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchPatchBaselineId",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchDocumentName",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchPatchGroup",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchExecutionId",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchresourceId",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchcaptureTime",
+                            "Type": "STRING"
+                        },
+                        {
+                            "Name": "PatchschemaVersion",
+                            "Type": "STRING"
+                        }
+                    ]
+                }
+            }
+        },
+        "LogicalTableMap": {
+            "26e52101-05eb-4329-a3e9-b4b0392ad87a": {
+                "Alias": "Intermediate Table (3)",
+                "DataTransforms": [
+                    {
+                        "ProjectOperation": {
+                            "ProjectedColumns": [
+                                "ConfigMICDate",
+                                "ConfigMICAccountID",
+                                "ConfigMICRegion",
+                                "ConfigMICInstanceID",
+                                "ConfigMICName",
+                                "ConfigMICState",
+                                "ConfigMICComplianceStatus",
+                                "ConfigPCDate",
+                                "ConfigPCInstanceID",
+                                "ConfigPCStatus",
+                                "platformname",
+                                "platformversion",
+                                "agenttype",
+                                "agentversion",
+                                "instanceid",
+                                "instancestatus",
+                                "computername",
+                                "ipaddress",
+                                "platformtype",
+                                "resourceid[aws_instance_information]",
+                                "capturetime[aws_instance_information]",
+                                "schemaversion[aws_instance_information]",
+                                "accountid[aws_instance_information]",
+                                "region[aws_instance_information]",
+                                "resourcetype[aws_instance_information]",
+                                "PatchStatus",
+                                "PatchInstalledTime",
+                                "PatchExecutionType",
+                                "PatchPatchSeverity",
+                                "PatchTitle",
+                                "PatchSeverity",
+                                "PatchExecutionTime",
+                                "PatchComplianceType",
+                                "PatchClassification",
+                                "PatchDocumentVersion",
+                                "PatchId",
+                                "PatchPatchState",
+                                "PatchPatchBaselineId",
+                                "PatchDocumentName",
+                                "PatchPatchGroup",
+                                "PatchExecutionId",
+                                "PatchresourceId",
+                                "PatchcaptureTime",
+                                "PatchschemaVersion"
+                            ]
+                        }
+                    }
+                ],
+                "Source": {
+                    "JoinInstruction": {
+                        "LeftOperand": "3bd7622e-26cb-4cc7-b881-8a8512d477dc",
+                        "RightOperand": "3b16c290-4c09-406a-b2d7-762f7101cdb1",
+                        "Type": "LEFT",
+                        "OnClause": "{ConfigMICInstanceID} = {PatchresourceId}"
+                    }
+                }
+            },
+            "3b16c290-4c09-406a-b2d7-762f7101cdb1": {
+                "Alias": "PatchComplianceItem",
+                "Source": {
+                    "PhysicalTableId": "f4277b57-5a4e-4b55-a8eb-160d1d8480f0"
+                }
+            },
+            "3bd7622e-26cb-4cc7-b881-8a8512d477dc": {
+                "Alias": "Intermediate Table (2)",
+                "Source": {
+                    "JoinInstruction": {
+                        "LeftOperand": "89d72a69-eb67-45bc-959a-5d1885608c52",
+                        "RightOperand": "69962a27-cfee-4a1f-bfd3-61a76b68f5fb",
+                        "Type": "LEFT",
+                        "OnClause": "{ConfigMICInstanceID} = {instanceid}"
+                    }
+                }
+            },
+            "69962a27-cfee-4a1f-bfd3-61a76b68f5fb": {
+                "Alias": "aws_instance_information",
+                "DataTransforms": [
+                    {
+                        "RenameColumnOperation": {
+                            "ColumnName": "resourceid",
+                            "NewColumnName": "resourceid[aws_instance_information]"
+                        }
+                    },
+                    {
+                        "RenameColumnOperation": {
+                            "ColumnName": "capturetime",
+                            "NewColumnName": "capturetime[aws_instance_information]"
+                        }
+                    },
+                    {
+                        "RenameColumnOperation": {
+                            "ColumnName": "schemaversion",
+                            "NewColumnName": "schemaversion[aws_instance_information]"
+                        }
+                    },
+                    {
+                        "RenameColumnOperation": {
+                            "ColumnName": "accountid",
+                            "NewColumnName": "accountid[aws_instance_information]"
+                        }
+                    },
+                    {
+                        "RenameColumnOperation": {
+                            "ColumnName": "region",
+                            "NewColumnName": "region[aws_instance_information]"
+                        }
+                    },
+                    {
+                        "RenameColumnOperation": {
+                            "ColumnName": "resourcetype",
+                            "NewColumnName": "resourcetype[aws_instance_information]"
+                        }
+                    }
+                ],
+                "Source": {
+                    "PhysicalTableId": "e6a92aef-7b78-4601-87f3-f3233e016586"
+                }
+            },
+            "89d72a69-eb67-45bc-959a-5d1885608c52": {
+                "Alias": "Intermediate Table",
+                "Source": {
+                    "JoinInstruction": {
+                        "LeftOperand": "ecd01046-e56f-4dd1-912f-aa976f19c442",
+                        "RightOperand": "938be492-4b68-4648-8231-2e9d780e6dbd",
+                        "Type": "LEFT",
+                        "OnClause": "{ConfigMICInstanceID} = {ConfigPCInstanceID}"
+                    }
+                }
+            },
+            "938be492-4b68-4648-8231-2e9d780e6dbd": {
+                "Alias": "Patched",
+                "Source": {
+                    "PhysicalTableId": "7b955de2-306e-4896-b192-a7453ecd2cc6"
+                }
+            },
+            "ecd01046-e56f-4dd1-912f-aa976f19c442": {
+                "Alias": "Managed",
+                "Source": {
+                    "PhysicalTableId": "823eee35-42aa-4bba-b605-22cacb1e47ae"
+                }
+            }
+        },
+        "OutputColumns": [
+            {
+                "Name": "ConfigMICDate",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigMICAccountID",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigMICRegion",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigMICInstanceID",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigMICName",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigMICState",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigMICComplianceStatus",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigPCDate",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigPCInstanceID",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ConfigPCStatus",
+                "Type": "STRING"
+            },
+            {
+                "Name": "platformname",
+                "Type": "STRING"
+            },
+            {
+                "Name": "platformversion",
+                "Type": "STRING"
+            },
+            {
+                "Name": "agenttype",
+                "Type": "STRING"
+            },
+            {
+                "Name": "agentversion",
+                "Type": "STRING"
+            },
+            {
+                "Name": "instanceid",
+                "Type": "STRING"
+            },
+            {
+                "Name": "instancestatus",
+                "Type": "STRING"
+            },
+            {
+                "Name": "computername",
+                "Type": "STRING"
+            },
+            {
+                "Name": "ipaddress",
+                "Type": "STRING"
+            },
+            {
+                "Name": "platformtype",
+                "Type": "STRING"
+            },
+            {
+                "Name": "resourceid[aws_instance_information]",
+                "Type": "STRING"
+            },
+            {
+                "Name": "capturetime[aws_instance_information]",
+                "Type": "STRING"
+            },
+            {
+                "Name": "schemaversion[aws_instance_information]",
+                "Type": "STRING"
+            },
+            {
+                "Name": "accountid[aws_instance_information]",
+                "Type": "STRING"
+            },
+            {
+                "Name": "region[aws_instance_information]",
+                "Type": "STRING"
+            },
+            {
+                "Name": "resourcetype[aws_instance_information]",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchStatus",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchInstalledTime",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchExecutionType",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchPatchSeverity",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchTitle",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchSeverity",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchExecutionTime",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchComplianceType",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchClassification",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchDocumentVersion",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchId",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchPatchState",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchPatchBaselineId",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchDocumentName",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchPatchGroup",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchExecutionId",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchresourceId",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchcaptureTime",
+                "Type": "STRING"
+            },
+            {
+                "Name": "PatchschemaVersion",
+                "Type": "STRING"
+            }
+        ],
+        "ImportMode": "SPICE",
+        "ConsumedSpiceCapacityInBytes": 0,
+        "ColumnGroups": []
+    },
+    "RequestId": "1989bbf2-392b-4db0-8a5a-c9813b756484"
+}

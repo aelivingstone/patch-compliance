@@ -4,7 +4,6 @@ Description: |
   - Enable and configure AWS Config
   - Configure AWS Systems Manager Patch Manager
   - Configure AWS Sytems Manager resource data sync
-  - Create and distribute custom AWS Config conformance packs
   - Create AWS Config Authorization Aggregator
   - Create a partitioned Amazon Athena table for AWS Config data
   - Create an AWS Lambda function to update the Athena Table
@@ -14,75 +13,138 @@ Metadata:
   AWS::CloudFormation::Interface: 
     ParameterGroups: 
       - Label: 
-          default: "AWS Config"
+          default: "QuickSight"
         Parameters: 
-          - ConfigBucket
-          - AllSupported
-          - IncludeGlobalResourceTypes
-          - ResourceTypes
-          - DeliveryChannelName
-          - Frequency
-          - TopicArn
-          - NotificationEmail          
+          - QuickSightUser      
+          - LambdaFunctionS3Bucket
+          - LambdaFunctionS3Key         
       - Label: 
-          default: "AWS Systems Manager Patch Manager"
+          default: "Organization"
         Parameters: 
-          - PatchOperation
+          - PrincipalOrgID
+      - Label: 
+          default: "Config"
+        Parameters: 
+          - Frequency        
+          - NotificationEmail 
+      - Label: 
+          default: "Systems Manager"
+        Parameters: 
+          - PatchOperation 
+          - PatchRebootOption   
+      - Label: 
+          default: "Deployment Options"
+        Parameters: 
+          - StackSetAccounts
+          - StackSetRegions      
+          - StackSetAdministrationRoleARN
+          - StackSetExecutionRoleName
+          - StackSetFailureToleranceCount
+          - StackSetMaxConcurrentCount
+      - Label: 
+          default: "Athena"
+        Parameters: 
+          - AthenaDatabaseName
+          - AthenaTableName
+          - AthenaComplianceItemTableName
+          - AthenaInstanceInformationTableName    
+          - AthenaWindowsUpdateTableName  
+          - AthenaApplicationTableName
+          - AthenaAWSComponentTableName
+          - AthenaNetworkTableName
+          - AthenaPatchSummaryTableName
+          - AthenaInstanceDetailedInformationTableName
+          - AthenaResourceGroupTableName
+          - AthenaServiceTableName
+          - AthenaTagTableName
+          - AthenaWindowsRoleTableName
+          - AthenaWindowsUpdateTableName
+          - ConfgigMICRoleViewName
+          - ConfigPCViewName
+          - PatchViewName          
     ParameterLabels: 
-      ConfigBucket: 
-        default: "S3 Bucket"
-      AllSupported:
-        default: Support all resource types
-      IncludeGlobalResourceTypes:
-        default: Include global resource types
-      ResourceTypes:
-        default: List of resource types if not all supported
-      DeliveryChannelName:
-        default: Configuration delivery channel name
-      Frequency:
-        default: Snapshot delivery frequency
-      TopicArn:
-        default: SNS topic name
-      NotificationEmail:
-        default: Notification Email (optional)
-      PatchOperation:
-        default: Scan or Install Patches
-
-Parameters: 
-  ConfigBucket: 
-    AllowedPattern: ^[0-9a-z]+([0-9a-z-\.]*[0-9a-z])$
-    ConstraintDescription: "Malformed input-Parameter ConfigBucket must follow rules for bucket naming. See https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html for more information."
-    MinLength: 3
-    MaxLength: 63
+      QuickSightUser:
+        default: Copy your username from QuickSight. Go to Admin and Manage users to check 
+      PrincipalOrgID: 
+        default: Organization ID beginning o- , use CLI commmand to retrieve ID, aws organizations describe-organization
+Parameters:  
+  QuickSightUser:
+    Description: QuickSight User      
+    Type: String    
+  PrincipalOrgID: 
+    Description: Organization ID      
     Type: String
-    Description: "Enter the name of the Amazon S3 bucket used to store AWS Config Data"
-  
-  AllSupported:
+    MinLength: 12
+    MaxLength: 34
+    AllowedPattern: "o-[a-z0-9]{10,32}" 
+  AthenaDatabaseName: 
+    Description: Config Patch Compliance TAble Name    
+    Type: String    
+    Default: patch_compliance
+  AthenaTableName: 
+    Description: Config Table Name    
+    Type: String       
+    Default: aws_config_snapshot
+  AthenaComplianceItemTableName:
+    Description: SSM Compliance Item Table Name    
+    Type: String       
+    Default: aws_compliance_item  
+  AthenaInstanceInformationTableName: 
+    Description: SSM Instance Information Table Name    
+    Type: String       
+    Default: aws_instance_information     
+  AthenaWindowsUpdateTableName:
+    Description: SSM Windows Update Table Name    
+    Type: String       
+    Default: aws_windows_update     
+  AthenaApplicationTableName:  
+    Description: SSM Application Table Name    
+    Type: String       
+    Default: aws_application    
+  AthenaAWSComponentTableName: 
+    Description: SSM AWS Component Table Name    
+    Type: String       
+    Default: aws_aws_component
+  AthenaNetworkTableName:     
+    Description: SSM AWS Network Table Name    
+    Type: String       
+    Default: aws_network
+  AthenaPatchSummaryTableName:     
+    Description: SSM Patch Summary Table Name    
+    Type: String       
+    Default: aws_patch_summary    
+  AthenaInstanceDetailedInformationTableName:   
+    Description: SSM Instance Detailed Information Table Name   
+    Type: String       
+    Default: aws_instance_detailed_information 
+  AthenaResourceGroupTableName:   
+    Description: SSM Resource Group Table Name   
+    Type: String       
+    Default: aws_resource_group 
+  AthenaServiceTableName:    
+    Description: SSM Service Table Name   
+    Type: String       
+    Default: aws_service  
+  AthenaTagTableName:
+    Description: SSM Tag Table Name   
+    Type: String       
+    Default: aws_tag  
+  AthenaWindowsRoleTableName:
+    Description: SSM Windows Role Table Name   
+    Type: String       
+    Default: aws_windows_role 
+  ConfgigMICRoleViewName:
+    Description: Config Managed Instance Compliance View Name   
+    Type: String       
+    Default: configmic 
+  ConfigPCViewName:
+    Description: Config Patch Compliance View Name     
+    Type: String       
+    Default: configpc 
+  NotificationEmail:
     Type: String
-    Default: True
-    Description: Indicates whether to record all supported resource types.
-    AllowedValues:
-      - True
-      - False
-
-  IncludeGlobalResourceTypes:
-    Type: String
-    Default: True
-    Description: Indicates whether AWS Config records all supported global resource types.
-    AllowedValues:
-      - True
-      - False
-
-  ResourceTypes:
-    Type: List<String>
-    Description: A list of valid AWS resource types to include in this recording group, such as AWS::EC2::Instance or AWS::CloudTrail::Trail.
-    Default: <All>
-
-  DeliveryChannelName:
-    Type: String
-    Default: <Generated>
-    Description: The name of the delivery channel.
-
+    Default: <None>
+    Description: Email address for AWS Config notifications.
   Frequency:
     Type: String
     Default: 24hours
@@ -92,96 +154,804 @@ Parameters:
       - 3hours
       - 6hours
       - 12hours
-      - 24hours
-
-  TopicArn:
-    Type: String
-    Default: <New Topic>
-    Description: The Amazon Resource Name (ARN) of the Amazon Simple Notification Service (Amazon SNS) topic that AWS Config delivers notifications to.
-
-  NotificationEmail:
-    Type: String
-    Default: <None>
-    Description: Email address for AWS Config notifications (for new topics).
-
+      - 24hours        
+  PatchViewName:
+    Description: SSM Patches View Name   
+    Type: String       
+    Default: patch    
   PatchOperation:
     Type: String
     Default: Scan
     Description: Perform a scan or install patches
     AllowedValues:
       - Scan
-      - Install   
-
+      - Install     
   PatchRebootOption:
     Type: String
     Default: NoReboot
     Description: Reboot behavior after a patch Install operation. If you choose NoReboot and patches are installed, the instance is marked as non-compliant until a subsequent reboot and scan.
     AllowedValues:
       - NoReboot
-      - RebootIfNeeded       
-
-Conditions:
-  IsAllSupported: !Equals
-    - !Ref AllSupported
-    - True
-  IsGeneratedDeliveryChannelName: !Equals
-    - !Ref DeliveryChannelName
-    - <Generated>
-  CreateTopic: !Equals
-    - !Ref TopicArn
-    - <New Topic>
-  CreateSubscription: !And
-    - !Condition CreateTopic
-    - !Not
-      - !Equals
-        - !Ref NotificationEmail
-        - <None>
-
-Mappings:
-  Settings:
-    FrequencyMap:
-      1hour   : One_Hour
-      3hours  : Three_Hours
-      6hours  : Six_Hours
-      12hours : Twelve_Hours
-      24hours : TwentyFour_Hours
-
-Resources:
-
-  ConfigTopic:
-    Condition: CreateTopic
-    Type: AWS::SNS::Topic
+      - RebootIfNeeded         
+  StackSetAdministrationRoleARN:
+    Description: The Amazon Resource Number (ARN) of the IAM role to use to create this stack set. Specify an IAM role only if you are using customized administrator roles to control which users or groups can manage specific stack sets within the same administrator account.     
+    Type: String
+    Default: arn:aws:iam::XXXXXXXXXXXX:role/AWSCloudFormationStackSetAdministrationRole
+    MinLength: 20
+    MaxLength: 2048  
+  StackSetExecutionRoleName:
+    Description: The name of the IAM execution role to use to create the stack set. If you do not specify an execution role, AWS CloudFormation uses the AWSCloudFormationStackSetExecutionRole role for the stack set operation.    
+    Type: String
+    Default: AWSCloudFormationStackSetExecutionRole
+    MinLength: 1
+    MaxLength: 64    
+  StackSetFailureToleranceCount:
+    Description: The number of accounts, per Region, for which this operation can fail before AWS CloudFormation stops the operation in that Region. If the operation is stopped in a Region, AWS CloudFormation doesn't attempt the operation in any subsequent Regions. 
+    Default: 1
+    Type: Number
+  StackSetMaxConcurrentCount:
+    Description: The maximum number of accounts in which to perform this operation at one time. This is dependent on the value of FailureToleranceCount. MaxConcurrentCount is at most one more than the FailureToleranceCount.
+    Default: 1
+    Type: Number  
+  StackSetAccounts:
+    Description: Comma separated list of names of one or more AWS accounts for which you want to deploy stack set updates.
+    Type: CommaDelimitedList
+  StackSetRegions:  
+    Description: Comma separated list of names of one or more Regions where you want to create stack instances using the specified AWS account(s).
+    Type: CommaDelimitedList
+  LambdaFunctionS3Bucket:
+    Description: Name of S3 Bucket containing the lambda zip file   
+    Type: String   
+  LambdaFunctionS3Key:    
+    Description: Path to the file containing the Lambda zip file   
+    Type: String     
+Outputs:
+  ConfigS3Bucket:
+    Description: The name of the S3 Bucket Created for Config
+    Value: !Ref ConfigBucket
+    Export:
+      Name: ConfigBucket 
+  SSMS3Bucket:
+    Description: The name of the S3 Bucket Created for SSM Data Sync
+    Value: !Ref DataSyncBucket
+    Export:
+      Name: DataSyncBucket   
+  SSMS3BucketRegion:
+    Description: The region of the S3 Bucket Created for SSM Data Sync
+    Value: !Ref "AWS::Region"
+    Export:
+      Name: DataSyncBucketRegion                    
+Resources:                                            
+  AthenaBucket:
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Type: AWS::S3::Bucket
+    Properties:    
+      BucketName: !Join ['', ['aws-athena-query-results-compliance-', !Select [0, !Split ["-",!Select [2, !Split ["/", !Ref AWS::StackId]]]]]]
+  DataSyncBucket:
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Type: AWS::S3::Bucket
+  DataSyncBucketPolicy:
+    Type: AWS::S3::BucketPolicy
     Properties:
-      TopicName: !Sub "config-topic-${AWS::AccountId}"
-      DisplayName: AWS Config Notification Topic
-
-  ConfigTopicPolicy:
-    Condition: CreateTopic
-    Type: AWS::SNS::TopicPolicy
-    Properties:
-      Topics:
-        - !Ref ConfigTopic
+      Bucket: !Ref DataSyncBucket
       PolicyDocument:
+        Version: 2012-10-17
         Statement:
-          - Sid: AWSConfigSNSPolicy
-            Action:
-              - sns:Publish
+        - Sid: SSMBucketPermissionsCheck
+          Effect: Allow
+          Principal:
+            Service: ssm.amazonaws.com
+          Action: s3:GetBucketAcl
+          Resource: !Sub "arn:aws:s3:::${DataSyncBucket}"
+        - Sid: " SSMBucketDelivery"
+          Effect: Allow
+          Principal:
+            Service: ssm.amazonaws.com
+          Action: s3:PutObject
+          Resource: !Sub "arn:aws:s3:::${DataSyncBucket}/*"
+          Condition:
+            StringEquals:
+              s3:x-amz-acl: bucket-owner-full-control
+  ConfigBucket:
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Type: AWS::S3::Bucket
+  ConfigBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref ConfigBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AWSConfigBucketPermissionsCheck
             Effect: Allow
-            Resource: !Ref ConfigTopic
+            Principal:
+              Service: config.amazonaws.com
+            Action: 's3:GetBucketAcl'
+            Resource: !Sub "arn:aws:s3:::${ConfigBucket}"
+          - Sid: AWSConfigBucketExistenceCheck
+            Effect: Allow
+            Principal:
+              Service: config.amazonaws.com
+            Action: 's3:ListBucket'
+            Resource: !Sub "arn:aws:s3:::${ConfigBucket}"
+          - Sid: AWSStackBucketDelivery
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:PutObject'
+            Resource: !Sub "arn:aws:s3:::${ConfigBucket}/*"
+            Condition:
+              StringEquals:
+                'aws:PrincipalOrgID': !Ref PrincipalOrgID
+              ArnLike:
+                'aws:PrincipalArn': 'arn:aws:iam::*:role/StackSet-*'
+          - Sid: AWSOrgBucketDelivery
+            Effect: Allow
             Principal:
               Service:
                 - config.amazonaws.com
-
-  EmailNotification:
-    Condition: CreateSubscription
-    Type: AWS::SNS::Subscription
+            Action: 's3:PutObject'
+            Resource: !Sub "arn:aws:s3:::${ConfigBucket}/*"
+            Condition:
+              StringEquals:
+                'aws:PrincipalOrgID': !Ref PrincipalOrgID
+          - Sid: AWSConfigBucketDelivery
+            Effect: Allow
+            Principal:
+              Service:
+                - config.amazonaws.com
+            Action: 's3:PutObject'
+            Resource: !Sub "arn:aws:s3:::${ConfigBucket}/*"                                
+  AthenaDatabase:                
+    Type: AWS::Glue::Database
+    Properties: 
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput: 
+        Description: Patch Compliance Database
+        Name: !Ref AthenaDatabaseName
+  AthenaTable:
+    Type: AWS::Glue::Table
     Properties:
-      Endpoint: !Ref NotificationEmail
-      Protocol: email
-      TopicArn: !Ref ConfigTopic
-
-  ConfigRecorderRole:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaTableName
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: dt, Type: string}
+          - {Name: region, Type: string}
+        StorageDescriptor:
+          Columns:
+          - {Name: fileversion, Type: string}
+          - {Name: configsnapshotid, Type: string}
+          - {Name: configurationitems, Type: 'array<struct<configurationitemversion:string,configurationitemcapturetime:string,configurationstateid:bigint,awsaccountid:string,configurationitemstatus:string,resourcetype:string,resourceid:string,resourcename:string,arn:string,awsregion:string,availabilityzone:string,configurationstatemd5hash:string,configuration:string,supplementaryconfiguration:map<string,string>,tags:map<string,string>,resourcecreationtime:string>>'}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${ConfigBucket}/AWSLogs/"
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
+  AthenaComplianceItemTable:
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaComplianceItemTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: Status, Type: string}
+          - {Name: InstalledTime, Type: string}
+          - {Name: ExecutionType, Type: string}
+          - {Name: PatchSeverity, Type: string}
+          - {Name: Title, Type: string}
+          - {Name: Severity, Type: string}
+          - {Name: ExecutionTime, Type: string}
+          - {Name: ComplianceType, Type: string}
+          - {Name: Classification, Type: string}
+          - {Name: DocumentVersion, Type: string}
+          - {Name: Id, Type: string}
+          - {Name: PatchState, Type: string}
+          - {Name: PatchBaselineId, Type: string}
+          - {Name: DocumentName, Type: string}
+          - {Name: PatchGroup, Type: string}
+          - {Name: ExecutionId, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:ComplianceItem/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
+  AthenaInstanceInformationTable:
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaInstanceInformationTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: PlatformName, Type: string}
+          - {Name: PlatformVersion, Type: string}
+          - {Name: AgentType, Type: string}
+          - {Name: AgentVersion, Type: string}
+          - {Name: InstanceId, Type: string}
+          - {Name: InstanceStatus, Type: string}
+          - {Name: ComputerName, Type: string}
+          - {Name: IpAddress, Type: string}
+          - {Name: PlatformType, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:InstanceInformation/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe    
+  AthenaInstanceDetailedInformationTable:
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaInstanceDetailedInformationTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: CPUs, Type: string}
+          - {Name: OSServicePack, Type: string}
+          - {Name: CPUHyperThreadEnabled, Type: string}
+          - {Name: CPUSpeedMHz, Type: string}
+          - {Name: CPUSockets, Type: string}
+          - {Name: CPUCores, Type: string}
+          - {Name: CPUModel, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:InstanceDetailedInformation/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
+  AthenaWindowsRoleTable:
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaWindowsRoleTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: Path, Type: string}
+          - {Name: FeatureType, Type: string}
+          - {Name: DependsOn, Type: string}
+          - {Name: Description, Type: string}
+          - {Name: Parent, Type: string}
+          - {Name: Installed, Type: string}
+          - {Name: DisplayName, Type: string}
+          - {Name: InstalledState, Type: string}
+          - {Name: SubFeatures, Type: string}
+          - {Name: Name, Type: string}
+          - {Name: ServerComponentDescriptor, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:WindowsRole/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
+  AthenaTagTable:
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaTagTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: Key, Type: string}
+          - {Name: Value, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:Tag/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
+  AthenaServiceTable:
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaServiceTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: Status, Type: string}
+          - {Name: ServiceType, Type: string}
+          - {Name: ServicesDependedOn, Type: string}
+          - {Name: DisplayName, Type: string}
+          - {Name: DependentServices, Type: string}
+          - {Name: StartType, Type: string}
+          - {Name: Name, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:Service/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
+  AthenaResourceGroupTable:
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaResourceGroupTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: CPUs, Type: string}
+          - {Name: OSServicePack, Type: string}
+          - {Name: CPUHyperThreadEnabled, Type: string}
+          - {Name: CPUSpeedMHz, Type: string}
+          - {Name: CPUSockets, Type: string}
+          - {Name: CPUCores, Type: string}
+          - {Name: CPUModel, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:ResourceGroup/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe
+  AthenaWindowsUpdateTable: # Change Resource Name
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaWindowsUpdateTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: ResourceId, Type: string}
+          - {Name: HotFixId, Type: string}
+          - {Name: Description, Type: string}
+          - {Name: InstalledTime, Type: string}
+          - {Name: InstalledBy, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:WindowsUpdate/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe                    
+  AthenaApplicationTable: # Change Resource Name
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaApplicationTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: ApplicationType, Type: string}
+          - {Name: InstalledTime, Type: string}
+          - {Name: Architecture, Type: string}
+          - {Name: Version, Type: string}
+          - {Name: Summary, Type: string}
+          - {Name: PackageId, Type: string}
+          - {Name: Publisher, Type: string}
+          - {Name: Release, Type: string}
+          - {Name: URL, Type: string}
+          - {Name: Name, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:Application/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe            
+  AthenaAWSComponentTable: # Change Resource Name
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaAWSComponentTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: ApplicationType, Type: string}
+          - {Name: InstalledTime, Type: string}
+          - {Name: Architecture, Type: string}
+          - {Name: Version, Type: string}
+          - {Name: Summary, Type: string}
+          - {Name: PackageId, Type: string}
+          - {Name: Publisher, Type: string}
+          - {Name: Release, Type: string}
+          - {Name: URL, Type: string}
+          - {Name: Name, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:AWSComponent/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe        
+  AthenaNetworkTable: # Change Resource Name
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaNetworkTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: ResourceId, Type: string}
+          - {Name: Name, Type: string}
+          - {Name: SubnetMask, Type: string}
+          - {Name: Gateway, Type: string}
+          - {Name: DHCPServer, Type: string}
+          - {Name: DNSServer, Type: string}
+          - {Name: MacAddress, Type: string}
+          - {Name: IPV4, Type: string}
+          - {Name: IPV6, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:Network/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe               
+  AthenaPatchSummaryTable: # Change Resource Name
+    Type: AWS::Glue::Table
+    Properties:
+      DatabaseName: !Ref AthenaDatabase
+      CatalogId: !Ref AWS::AccountId
+      TableInput:
+        Name: !Ref AthenaPatchSummaryTableName # Change Table Name
+        TableType: EXTERNAL_TABLE
+        Parameters:
+          CrawlerSchemaDeserializerVersion': "1.0"
+          CrawlerSchemaSerializerVersion': "1.0"
+          classification': json
+          compressionType': none
+          typeOfData': file
+        PartitionKeys:
+          - {Name: accountid, Type: string}
+          - {Name: region, Type: string}
+          - {Name: resourcetype, Type: string}          
+        StorageDescriptor:
+          Columns: # Change Columns
+          - {Name: BaselineId, Type: string}
+          - {Name: MissingCount, Type: string}
+          - {Name: InstalledOtherCount, Type: string}
+          - {Name: OperationEndTime, Type: string}
+          - {Name: InstalledPendingRebootCount, Type: string}
+          - {Name: SnapshotId, Type: string}
+          - {Name: NotApplicableCount, Type: string}
+          - {Name: OperationStartTime, Type: string}
+          - {Name: RebootOption, Type: string}
+          - {Name: FailedCount, Type: string}
+          - {Name: OperationType, Type: string}
+          - {Name: InstalledCount, Type: string}
+          - {Name: InstalledRejectedCount, Type: string}
+          - {Name: PatchGroup, Type: string}
+          - {Name: resourceId, Type: string}
+          - {Name: captureTime, Type: string}
+          - {Name: schemaVersion, Type: string}
+          Compressed: false
+          InputFormat: org.apache.hadoop.mapred.TextInputFormat
+          Location: !Sub "s3://${DataSyncBucket}/AWS:PatchSummary/" # Change Location
+          OutputFormat: org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+          SerdeInfo:
+            SerializationLibrary: org.openx.data.jsonserde.JsonSerDe             
+  AthenaConfigMICVNamedQuery:
+    Type: AWS::Athena::NamedQuery
+    Properties: 
+      Database: !Ref AthenaDatabase
+      Description: Config Managed Instance Compliance
+      Name: configmic
+      QueryString: |
+        SELECT MAX(dt) as ConfigMICDate, 
+        MAX(configurationItem.awsaccountid) as ConfigMICAccountID, 
+        MAX(configurationItem.awsregion) as ConfigMICRegion, 
+        split(configurationItem.resourceid,'/')[2] as ConfigMICInstanceID, 
+        MAX(instance.tags['name']) as ConfigMICName,
+        MAX(json_extract_scalar(instance.configuration, '$.state.name')) as ConfigMICState,
+        MAX(json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-instance-managed-by-systems-manager[^}.]*\\}'), '$.compliancetype')) as ConfigMICComplianceStatus
+        FROM patch_compliance.aws_config_snapshot
+        CROSS JOIN UNNEST(configurationitems) AS t1(configurationItem)
+        CROSS JOIN UNNEST(configurationitems) AS t2(instance)
+        WHERE regexp_like(configurationItem.configuration, '\\{[^}{.]*ec2-instance-managed-by-systems-manager[^}.]*\\}')
+        AND configurationItem.resourcetype = 'AWS::Config::ResourceCompliance'
+        AND t2.instance.resourceID = split(configurationItem.resourceid,'/')[2]
+        GROUP BY split(configurationItem.resourceid,'/')[2]
+  LambdaExecutionRole:
     Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: "arn:aws:logs:*:*:*"          
+          - Effect: Allow
+            Action:
+            - s3:ListBucket
+            - s3:PutObject 
+            Resource: !Sub "${ConfigBucket.Arn}/*"
+          - Effect: Allow
+            Action: xray:PutTraceSegments
+            Resource: "*"              
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+  PartitioningFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile:  !Sub  |
+          import datetime
+          import re
+          import boto3
+          import os
+          import logging
+
+          TABLE_NAME = '${AthenaTableName}'
+          DATABASE_NAME = '${AthenaDatabaseName}'
+          ATHENA_BUCKET = '${AthenaBucket}'
+          ACCOUNT_ID = None # Determined at runtime
+          LATEST_PARTITION_VALUE = 'latest'
+
+          athena = boto3.client('athena')
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)          
+
+          def handler(event, context):
+              global ACCOUNT_ID
+              global ATHENA_BUCKET
+
+              object_key = event['Records'][0]['s3']['object']['key']
+              match = get_configuration_snapshot_object_key_match(object_key)
+              if match is None:
+                  logger.info('Ignoring event for non-configuration snapshot object key: ' + object_key)
+                  return
+              logger.info('Adding partitions for configuration snapshot object key: ' + object_key)
+              
+              ACCOUNT_ID = context.invoked_function_arn.split(':')[4]
+              object_key_parent = 's3://{bucket_name}/{object_key_parent}/'.format(
+                  bucket_name=event['Records'][0]['s3']['bucket']['name'],
+                  object_key_parent=os.path.dirname(object_key))
+              configuration_snapshot_region = get_configuration_snapshot_region(match)
+              configuration_snapshot_date = get_configuration_snapshot_date(match)
+              
+              drop_partition(configuration_snapshot_region, get_configuration_snapshot_date(match).strftime('%Y-%m-%d'))
+              add_partition(configuration_snapshot_region, get_configuration_snapshot_date(match).strftime('%Y-%m-%d'), object_key_parent)
+              
+          def get_configuration_snapshot_object_key_match(object_key):
+              # Matches object keys like AWSLogs/123456789012/Config/us-east-1/2018/4/11/ConfigSnapshot/123456789012_Config_us-east-1_ConfigSnapshot_20180411T054711Z_a970aeff-cb3d-4c4e-806b-88fa14702hdb.json.gz
+              return re.match('^AWSLogs/\d+/Config/([\w-]+)/(\d+)/(\d+)/(\d+)/ConfigSnapshot/[^\\\]+$', object_key)
+
+          def get_configuration_snapshot_region(match):
+              return match.group(1)
+
+          def get_configuration_snapshot_date(match):
+              return datetime.date(int(match.group(2)), int(match.group(3)), int(match.group(4)))
+              
+          def add_partition(region_partition_value, dt_partition_value, partition_location):
+              execute_query('ALTER TABLE {table_name} ADD PARTITION {partition} location \'{partition_location}\''.format(
+                  table_name=TABLE_NAME,
+                  partition=build_partition_string(region_partition_value, dt_partition_value),
+                  partition_location=partition_location))
+                  
+          def drop_partition(region_partition_value, dt_partition_value):
+              execute_query('ALTER TABLE {table_name} DROP PARTITION {partition}'.format(
+                  table_name=TABLE_NAME,
+                  partition=build_partition_string(region_partition_value, dt_partition_value)))
+                  
+          def build_partition_string(region_partition_value, dt_partition_value):
+              return "(dt='{dt_partition_value}', region='{region_partition_value}')".format(
+                  dt_partition_value=dt_partition_value,
+                  region_partition_value=region_partition_value)
+
+          def execute_query(query):
+              logger.info('Executing query: ' +query)
+              query_output_location = 's3://{ATHENA_BUCKET}'.format(
+                  account_id=ACCOUNT_ID,
+                  region=os.environ['AWS_REGION'])
+              start_query_response = athena.start_query_execution(
+                  QueryString=query,
+                  QueryExecutionContext={
+                      'Database': DATABASE_NAME
+                  },
+                  ResultConfiguration={
+                      'OutputLocation': query_output_location,
+                  }
+              )
+              logger.info('Query started')
+              
+              is_query_running = True
+              while is_query_running:
+                  get_query_execution_response = athena.get_query_execution(
+                      QueryExecutionId=start_query_response['QueryExecutionId']
+                  )
+                  query_state = get_query_execution_response['QueryExecution']['Status']['State']
+                  is_query_running = query_state in ('RUNNING','QUEUED')
+                  
+                  if not is_query_running and query_state != 'SUCCEEDED':
+                      raise Exception('Query failed')
+              logger.info('Query completed')   
+      Handler: index.handler
+      Runtime: python3.7
+      Timeout: 600
+      Role: !GetAtt LambdaExecutionRole.Arn        
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName: !GetAtt PartitioningFunction.Arn
+      Action: 'lambda:InvokeFunction'
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Sub 'arn:aws:s3:::${ConfigBucket}'
+  LambdaIAMRole:
+    Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -189,75 +959,709 @@ Resources:
           - Effect: Allow
             Principal:
               Service:
-                - config.amazonaws.com
+                - lambda.amazonaws.com
             Action:
-              - sts:AssumeRole
+              - 'sts:AssumeRole'
       Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:GetBucketNotification'
+                  - 's3:PutBucketNotification'
+                Resource: !Sub 'arn:aws:s3:::${ConfigBucket}'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: 'arn:aws:logs:*:*:*'
+  CustomResourceLambdaFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaIAMRole.Arn
+      Code:
+        ZipFile: |
+
+            from __future__ import print_function
+            import json
+            import boto3
+            import cfnresponse
+            
+            SUCCESS = "SUCCESS"
+            FAILED = "FAILED"
+            
+            print('Loading function')
+            s3 = boto3.resource('s3')
+            
+            def lambda_handler(event, context):
+                print("Received event: " + json.dumps(event, indent=2))
+                responseData={}
+                try:
+                    if event['RequestType'] == 'Delete':
+                        print("Request Type:",event['RequestType'])
+                        Bucket=event['ResourceProperties']['Bucket']
+                        delete_notification(Bucket)
+                        print("Sending response to custom resource after Delete")
+                    elif event['RequestType'] == 'Create' or event['RequestType'] == 'Update':
+                        print("Request Type:",event['RequestType'])
+                        LambdaArn=event['ResourceProperties']['LambdaArn']
+                        Bucket=event['ResourceProperties']['Bucket']
+                        add_notification(LambdaArn, Bucket)
+                        responseData={'Bucket':Bucket}
+                        print("Sending response to custom resource")
+                    responseStatus = 'SUCCESS'
+                except Exception as e:
+                    print('Failed to process:', e)
+                    responseStatus = 'FAILURE'
+                    responseData = {'Failure': 'Something bad happened.'}
+                cfnresponse.send(event, context, responseStatus, responseData)
+
+            def add_notification(LambdaArn, Bucket):
+                bucket_notification = s3.BucketNotification(Bucket)
+                response = bucket_notification.put(
+                  NotificationConfiguration={
+                    'LambdaFunctionConfigurations': [
+                      {
+                          'LambdaFunctionArn': LambdaArn,
+                          'Events': [
+                              's3:ObjectCreated:*'
+                          ]
+                      }
+                    ]
+                  }
+                )
+                print("Put request completed....")
+              
+            def delete_notification(Bucket):
+                bucket_notification = s3.BucketNotification(Bucket)
+                response = bucket_notification.put(
+                    NotificationConfiguration={}
+                )
+                print("Delete request completed....")
+      Runtime: python3.6
+      Timeout: 600
+  LambdaTrigger:
+    Type: 'Custom::LambdaTrigger'
+    DependsOn: LambdaInvokePermission
+    Properties:
+      ServiceToken: !GetAtt CustomResourceLambdaFunction.Arn
+      LambdaArn: !GetAtt PartitioningFunction.Arn
+      Bucket: !Ref ConfigBucket   
+  ConfigAggregatorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - config.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"          
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSConfigRole
+        - arn:aws:iam::aws:policy/service-role/AWSConfigRoleForOrganizations         
+  ConfigAggregator: 
+    Type: AWS::Config::ConfigurationAggregator 
+    Properties: 
+      ConfigurationAggregatorName: ConfigAggregator
+      OrganizationAggregationSource: 
+        AllAwsRegions: true
+        RoleArn: !GetAtt ConfigAggregatorRole.Arn
+  QuicksightLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: "arn:aws:logs:*:*:*"          
+          - Effect: Allow
+            Action:
+            - s3:ListBucket
+            Resource: !Sub "${DataSyncBucket.Arn}/*"
+          - Effect: Allow
+            Action: quicksight:*
+            Resource: "*"              
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSQuicksightAthenaAccess   
+  QuickSightFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Ref LambdaFunctionS3Bucket
+        S3Key: !Ref LambdaFunctionS3Key
+      Handler: quicksight.quicksight_handler
+      Runtime: python3.7
+      Timeout: 600
+      Role: !GetAtt QuicksightLambdaExecutionRole.Arn    
 
-  ConfigRecorder:
-    Type: AWS::Config::ConfigurationRecorder
-    DependsOn:
-      - ConfigTopicPolicy
-    Properties:
-      RoleARN: !GetAtt ConfigRecorderRole.Arn
-      RecordingGroup:
-        AllSupported: !Ref AllSupported
-        IncludeGlobalResourceTypes: !Ref IncludeGlobalResourceTypes
-        ResourceTypes: !If
-          - IsAllSupported
-          - !Ref AWS::NoValue
-          - !Ref ResourceTypes
+  StackSet:
+    Type: AWS::CloudFormation::StackSet
+    Properties: 
+      AdministrationRoleARN: !Ref StackSetAdministrationRoleARN
+      Capabilities: 
+        - CAPABILITY_IAM
+      Description: Deploy AWS Config, SSM Patch Manager Configuration and SSM Data Sync
+      ExecutionRoleName: !Ref StackSetExecutionRoleName
+      OperationPreferences: 
+        FailureToleranceCount: !Ref StackSetFailureToleranceCount
+        MaxConcurrentCount: !Ref StackSetMaxConcurrentCount
+      Parameters: 
+        -
+          ParameterKey: ConfigBucket
+          ParameterValue: !Ref ConfigBucket 
+        -
+          ParameterKey: Frequency
+          ParameterValue: !Ref Frequency
+        -
+          ParameterKey: DataSyncBucket
+          ParameterValue: !Ref DataSyncBucket       
+        -
+          ParameterKey: DataSyncBucketRegion
+          ParameterValue: !Ref "AWS::Region"      
+        -
+          ParameterKey: PatchOperation
+          ParameterValue: !Ref PatchOperation      
+        -
+          ParameterKey: PatchRebootOption
+          ParameterValue: !Ref PatchRebootOption 
+        -
+          ParameterKey: NotificationEmail
+          ParameterValue: !Ref NotificationEmail 
+      PermissionModel: SELF_MANAGED
+      StackInstancesGroup:
+        -
+          DeploymentTargets:
+            Accounts: !Ref StackSetAccounts
+          Regions: !Ref StackSetRegions
+      StackSetName: !Join [ "", [ !Ref "AWS::StackName", -Stackset ] ]
+      TemplateBody: |
+        AWSTemplateFormatVersion: "2010-09-09"
+        Description: |
+          This template centralises patch compliance information:
+          - Enable and configure AWS Config
+          - Configure AWS Systems Manager Patch Manager
+          - Configure AWS Sytems Manager resource data sync
+          - Create AWS Config Authorization Aggregator
+        Metadata: 
+          AWS::CloudFormation::Interface: 
+            ParameterGroups: 
+              - Label: 
+                  default: "AWS Config"
+                Parameters: 
+                  - ConfigBucket
+                  - AllSupported
+                  - IncludeGlobalResourceTypes
+                  - ResourceTypes
+                  - DeliveryChannelName
+                  - Frequency
+                  - TopicArn
+                  - NotificationEmail          
+              - Label: 
+                  default: "AWS Systems Manager"
+                Parameters: 
+                  - PatchOperation
+                  - Owner
+                  - DataSyncBucket
+                  - DataSyncBucketRegion          
+            ParameterLabels: 
+              ConfigBucket: 
+                default: "S3 Bucket (see outputs of parent stack)"
+              AllSupported:
+                default: Support all resource types
+              IncludeGlobalResourceTypes:
+                default: Include global resource types
+              ResourceTypes:
+                default: List of resource types if not all supported
+              DeliveryChannelName:
+                default: Configuration delivery channel name
+              Frequency:
+                default: Snapshot delivery frequency
+              TopicArn:
+                default: SNS topic name
+              NotificationEmail:
+                default: Notification Email (optional)
+              PatchOperation:
+                default: Scan or Install Patches
+              Owner:
+                default: Patching Owner Information       
+              DataSyncBucket:
+                default: "SSM Inventory Sync Bucket (see outputs of parent stack)"
+              DataSyncBucketRegion:
+                default: "SSM Inventory Sync Bucket Region (see outputs of parent stack)"
 
-  ConfigDeliveryChannel:
-    Type: AWS::Config::DeliveryChannel
-    DependsOn:
-      - ConfigTopicPolicy
-    Properties:
-      Name: !If
-        - IsGeneratedDeliveryChannelName
-        - !Ref AWS::NoValue
-        - !Ref DeliveryChannelName
-      ConfigSnapshotDeliveryProperties:
-        DeliveryFrequency: !FindInMap
-          - Settings
-          - FrequencyMap
-          - !Ref Frequency
-      S3BucketName: !Ref ConfigBucket
-      SnsTopicARN: !If
-        - CreateTopic
-        - !Ref ConfigTopic
-        - !Ref TopicArn
+        Parameters: 
+          ConfigBucket: 
+            AllowedPattern: ^[0-9a-z]+([0-9a-z-\.]*[0-9a-z])$
+            ConstraintDescription: "Malformed input-Parameter ConfigBucket must follow rules for bucket naming. See https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html for more information."
+            MinLength: 3
+            MaxLength: 63
+            Type: String
+            Description: "Enter the name of the Amazon S3 bucket used to store AWS Config Data"
 
-  UpdateSSMAgentAssociation:
-    Type: AWS::SSM::Association
+          DataSyncBucket: 
+            AllowedPattern: ^[0-9a-z]+([0-9a-z-\.]*[0-9a-z])$
+            ConstraintDescription: "Malformed input-Parameter ConfigBucket must follow rules for bucket naming. See https://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html for more information."
+            MinLength: 3
+            MaxLength: 63
+            Type: String
+            Description: "Enter the name of the Amazon S3 bucket used to store SSM Inventory Sync Data"   
+
+          DataSyncBucketRegion:
+            Type: String
+            Description: The region of the SSM Inventory Sync Bucket.
+
+          AllSupported:
+            Type: String
+            Default: True
+            Description: Indicates whether to record all supported resource types.
+            AllowedValues:
+              - True
+              - False
+
+          IncludeGlobalResourceTypes:
+            Type: String
+            Default: True
+            Description: Indicates whether AWS Config records all supported global resource types.
+            AllowedValues:
+              - True
+              - False
+
+          ResourceTypes:
+            Type: List<String>
+            Description: A list of valid AWS resource types to include in this recording group, such as AWS::EC2::Instance or AWS::CloudTrail::Trail.
+            Default: <All>
+
+          DeliveryChannelName:
+            Type: String
+            Default: <Generated>
+            Description: The name of the delivery channel.
+
+          Frequency:
+            Type: String
+            Default: 24hours
+            Description: The frequency with which AWS Config delivers configuration snapshots.
+            AllowedValues:
+              - 1hour
+              - 3hours
+              - 6hours
+              - 12hours
+              - 24hours
+
+          TopicArn:
+            Type: String
+            Default: <New Topic>
+            Description: The Amazon Resource Name (ARN) of the Amazon Simple Notification Service (Amazon SNS) topic that AWS Config delivers notifications to.
+
+          NotificationEmail:
+            Type: String
+            Default: <None>
+            Description: Email address for AWS Config notifications (for new topics).
+
+          PatchOperation:
+            Type: String
+            Default: Scan
+            Description: Perform a scan or install patches
+            AllowedValues:
+              - Scan
+              - Install   
+
+          PatchRebootOption:
+            Type: String
+            Default: NoReboot
+            Description: Reboot behavior after a patch Install operation. If you choose NoReboot and patches are installed, the instance is marked as non-compliant until a subsequent reboot and scan.
+            AllowedValues:
+              - NoReboot
+              - RebootIfNeeded     
+
+          Owner:
+            Type: String
+            Default: <None>
+            Description: A user-provided value that will be included in any CloudWatch events that are raised while running tasks in the patching maintenance window.
+
+        Conditions:
+          IsAllSupported: !Equals
+            - !Ref AllSupported
+            - True
+          IsGeneratedDeliveryChannelName: !Equals
+            - !Ref DeliveryChannelName
+            - <Generated>
+          CreateTopic: !Equals
+            - !Ref TopicArn
+            - <New Topic>
+          CreateSubscription: !And
+            - !Condition CreateTopic
+            - !Not
+              - !Equals
+                - !Ref NotificationEmail
+                - <None>
+
+        Mappings:
+          Settings:
+            FrequencyMap:
+              1hour   : One_Hour
+              3hours  : Three_Hours
+              6hours  : Six_Hours
+              12hours : Twelve_Hours
+              24hours : TwentyFour_Hours
+
+        Outputs:
+          InstancesTagged:
+            Description: The number of managed instances tagged by the Lambda function
+            Value: !GetAtt EC2Tagging.InstancesTagged
+
+        Resources:
+          ConfigTopic:
+            Condition: CreateTopic
+            Type: AWS::SNS::Topic
+            Properties:
+              TopicName: !Sub "config-topic-${AWS::AccountId}"
+              DisplayName: AWS Config Notification Topic
+
+          ConfigTopicPolicy:
+            Condition: CreateTopic
+            Type: AWS::SNS::TopicPolicy
+            Properties:
+              Topics:
+                - !Ref ConfigTopic
+              PolicyDocument:
+                Statement:
+                  - Sid: AWSConfigSNSPolicy
+                    Action:
+                      - sns:Publish
+                    Effect: Allow
+                    Resource: !Ref ConfigTopic
+                    Principal:
+                      Service:
+                        - config.amazonaws.com
+
+          EmailNotification:
+            Condition: CreateSubscription
+            Type: AWS::SNS::Subscription
+            Properties:
+              Endpoint: !Ref NotificationEmail
+              Protocol: email
+              TopicArn: !Ref ConfigTopic
+
+          ConfigRecorderRole:
+            Type: AWS::IAM::Role
+            Properties:
+              AssumeRolePolicyDocument:
+                Version: 2012-10-17
+                Statement:
+                  - Effect: Allow
+                    Principal:
+                      Service:
+                        - config.amazonaws.com
+                    Action:
+                      - sts:AssumeRole
+              Path: /
+              ManagedPolicyArns:
+                - arn:aws:iam::aws:policy/service-role/AWSConfigRole
+
+          ConfigRecorder:
+            Type: AWS::Config::ConfigurationRecorder
+            DependsOn:
+              - ConfigTopicPolicy
+            Properties:
+              RoleARN: !GetAtt ConfigRecorderRole.Arn
+              RecordingGroup:
+                AllSupported: !Ref AllSupported
+                IncludeGlobalResourceTypes: !Ref IncludeGlobalResourceTypes
+                ResourceTypes: !If
+                  - IsAllSupported
+                  - !Ref AWS::NoValue
+                  - !Ref ResourceTypes
+
+          ConfigDeliveryChannel:
+            Type: AWS::Config::DeliveryChannel
+            DependsOn:
+              - ConfigTopicPolicy
+            Properties:
+              Name: !If
+                - IsGeneratedDeliveryChannelName
+                - !Ref AWS::NoValue
+                - !Ref DeliveryChannelName
+              ConfigSnapshotDeliveryProperties:
+                DeliveryFrequency: !FindInMap
+                  - Settings
+                  - FrequencyMap
+                  - !Ref Frequency
+              S3BucketName: !Ref ConfigBucket
+              SnsTopicARN: !If
+                - CreateTopic
+                - !Ref ConfigTopic
+                - !Ref TopicArn
+
+          UpdateSSMAgentAssociation:
+            Type: AWS::SSM::Association
+            Properties:
+              AssociationName: UpdateSSMAgent
+              ComplianceSeverity: CRITICAL
+              Name: AWS-UpdateSSMAgent
+              ScheduleExpression: rate(1 hour)      
+              Targets:
+                - 
+                  Key: InstanceIds
+                  Values:
+                    - "*"
+              WaitForSuccessTimeoutSeconds: 600
+
+          GatherSoftwareInventoryAssociation:
+            Type: AWS::SSM::Association
+            Properties:
+              AssociationName: GatherSoftwareInventory
+              ComplianceSeverity: MEDIUM
+              Name: AWS-GatherSoftwareInventory
+              ScheduleExpression: rate(1 hour)      
+              Targets:
+                - 
+                  Key: InstanceIds
+                  Values:
+                    - "*" 
+
+          RunPatchBaselineAssociation:
+            Type: AWS::SSM::Association
+            Properties:
+              AssociationName: RunPatchBaseline
+              ComplianceSeverity: CRITICAL
+              Name: AWS-RunPatchBaseline   
+              Parameters:
+                Operation:
+                  - !Ref PatchOperation
+                RebootOption:
+                  - !Ref PatchRebootOption  
+              ScheduleExpression: rate(1 hour)       
+              Targets:
+                - 
+                  Key: InstanceIds
+                  Values:
+                    - "*"
+
+          PatchAWSSSMMaintenanceWindow:
+            Type: 'AWS::SSM::MaintenanceWindow'
+            Properties:
+                Description: Maintenance Window for Patching
+                AllowUnassociatedTargets: false
+                Cutoff: 1
+                Schedule: cron(0 2 ? * TUE#2 *)
+                Duration: 4
+                ScheduleOffset: 4
+                Name: PatchingMaintenanceWindow
+
+          PatchAWSSSMMaintenanceWindowTarget:
+            Type: 'AWS::SSM::MaintenanceWindowTarget'
+            Properties:
+                OwnerInformation: !Ref Owner
+                Description: Maintenance Windows Target for Patching
+                WindowId: !Ref PatchAWSSSMMaintenanceWindow
+                ResourceType: INSTANCE
+                Targets:
+                  - 
+                    Key: tag:PlatformType
+                    Values:
+                      - "Windows"
+                      - "Linux"              
+                Name: PatchingMaintenanceWindowTarget
+
+          PatchAWSSSMMaintenanceWindowTask:
+            Type: 'AWS::SSM::MaintenanceWindowTask'
+            Properties:
+                MaxErrors: "2"
+                Description: PatchingMaintenanceWindowTask
+                Priority: 0
+                MaxConcurrency: "5"
+                Targets:
+                  - 
+                    Key: WindowTargetIds
+                    Values:
+                      - !Ref PatchAWSSSMMaintenanceWindowTarget
+                Name: PatchingMaintenanceWindowTask
+                TaskArn: AWS-RunPatchBaseline
+                TaskInvocationParameters:
+                    MaintenanceWindowRunCommandParameters:
+                        Comment: Run Patch Baseline
+                        Parameters:
+                          Operation:
+                            - !Ref PatchOperation
+                          RebootOption:
+                            - !Ref PatchRebootOption                 
+                        DocumentHashType: Sha256
+                        DocumentHash: ce0089afcc0a9c91d5e8a1363dfce022880d2e6d64c23975b66daaadf5c57e6f
+                WindowId: !Ref PatchAWSSSMMaintenanceWindow
+                TaskType: RUN_COMMAND
+
+          LambdaExecutionRole:
+            Type: AWS::IAM::Role
+            Properties:
+              AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                - Effect: Allow
+                  Principal:
+                    Service:
+                    - lambda.amazonaws.com
+                  Action:
+                  - sts:AssumeRole
+              Path: "/"
+              Policies:
+              - PolicyName: root
+                PolicyDocument:
+                  Version: '2012-10-17'
+                  Statement:
+                  - Effect: Allow
+                    Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                    Resource: "arn:aws:logs:*:*:"          
+                  - Effect: Allow
+                    Action:
+                    - ec2:CreateTags
+                    Resource: arn:aws:ec2:*:*:instance/*
+                  - Effect: Allow
+                    Action: ssm:DescribeInstanceInformation
+                    Resource: "*"
+                  - Effect: Allow
+                    Action: xray:PutTraceSegments
+                    Resource: "*"              
+
+          EC2TaggingFunction:
+            Type: AWS::Lambda::Function
+            Properties:
+              Code:
+                ZipFile: |
+                  import boto3
+                  import json
+                  import logging
+                  import cfnresponse
+
+                  ssm = boto3.client('ssm')
+                  ec2 = boto3.client('ec2')
+                  logger = logging.getLogger()
+                  logger.setLevel(logging.INFO)     
+
+                  def handler(event, context): 
+                      # set token to empty string
+                      token = ''
+                      
+                      # set response value to 0
+                      responseValue = 0
+                    
+                      while True:
+                          # Limit to 50 due to describe limit
+                          response = ssm.describe_instance_information(
+                              MaxResults=50,
+                              NextToken = token
+                          )
+                          
+                          for instanceInfo in response['InstanceInformationList']:
+                              # Create empty instances array
+                              instances = []                  
+                              instanceId = instanceInfo['InstanceId']
+                              logger.info('InstanceID: ' + instanceId)  
+                              instances.append(instanceId) 
+                              platformType = instanceInfo['PlatformType']
+                              logger.info('OS type: ' + platformType)
+                              osName = instanceInfo['PlatformName']
+                              logger.info('OS name: ' + osName)
+                              osVersion = instanceInfo['PlatformVersion']
+                              logger.info('OS version: ' + osVersion)
+                              logger.info('---')
+                              
+                              responseValue += 1
+                                                  
+                              tagResponse = ec2.create_tags(
+                                  Resources = instances,
+                                  Tags = [
+                                      {
+                                          'Key': 'PlatformType',
+                                          'Value': platformType
+                                      },
+                                      {
+                                          'Key': 'OSName',
+                                          'Value': osName
+                                      },    
+                                      {
+                                          'Key': 'OSVersion',
+                                          'Value': osVersion
+                                      },                   
+                                  ]
+                              )           
+                              
+                          if 'NextToken' not in response: break    
+                          token = response['NextToken']
+                          logger.info('Token: ' + token) 
+                      responseData = {}
+                      responseData['InstancesTagged'] = responseValue
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, "CustomResourcePhysicalID")      
+              Handler: index.handler
+              Runtime: python3.7
+              Timeout: 600
+              Role: !GetAtt LambdaExecutionRole.Arn
+              TracingConfig:
+                Mode: Active      
+
+          EC2Tagging:
+            Type: Custom::Function
+            Properties:
+              ServiceToken: !GetAtt EC2TaggingFunction.Arn
+              Region: !Ref "AWS::Region"
+
+          ResourceDataSync:
+            Type: AWS::SSM::ResourceDataSync
+            Properties:
+              SyncName: patch-compliance-sync
+              SyncType: SyncToDestination
+              S3Destination:
+                BucketName: !Ref DataSyncBucket
+                BucketRegion: !Ref DataSyncBucketRegion
+                SyncFormat: JsonSerDe                  
+  QuickSight:
+    Type: Custom::Function
+    DependsOn: LambdaTrigger
     Properties:
-      AssociationName: UpdateSSMAgent
-      Name: AWS-UpdateSSMAgent
-      ScheduleExpression: cron(0 2 ? * SUN *)      
-      Targets:
-        - Key: InstanceIds
-          Values:
-            - "*"
-      MaxConcurrency: 20%
-      MaxErrors: 5%
-      WaitForSuccessTimeoutSeconds: 300
-  
-  RunPatchBaselineAssociation:
-    Type: AWS::SSM::Association
-    Properties:
-      AssociationName: RunPatchBaseline
-      Name: AWS-RunPatchBaseline   
-      Parameters:
-        Operation:
-          - !Ref PatchOperation
-        RebootOption:
-          - !Ref PatchRebootOption    
-      Targets:
-        - Key: InstanceIds
-          Values:
-            - "*"
-      MaxConcurrency: 20%
-      MaxErrors: 5%
-      WaitForSuccessTimeoutSeconds: 600
+      ServiceToken: !GetAtt QuickSightFunction.Arn
+      Region: !Ref "AWS::Region"
+      Database: !Ref AthenaDatabaseName
+      ApplicationTable: !Ref AthenaApplicationTableName
+      ComponentTable: !Ref AthenaAWSComponentTableName
+      ComplianceItemTable: !Ref AthenaComplianceItemTableName
+      ConfigSnapshotTable: !Ref AthenaTableName
+      InstanceDetailedInformationTable: !Ref AthenaInstanceDetailedInformationTableName
+      InstanceInformationTable: !Ref AthenaInstanceInformationTableName
+      NetworkTable: !Ref AthenaNetworkTableName
+      PatchSummaryTable: !Ref AthenaPatchSummaryTableName
+      ResourceGroupTable: !Ref AthenaResourceGroupTableName
+      ServiceTable: !Ref AthenaServiceTableName
+      TagTable: !Ref AthenaTagTableName
+      WindowsRoleTable: !Ref AthenaWindowsRoleTableName
+      WindowsUpdateTable: !Ref AthenaWindowsUpdateTableName
+      AthenaS3Bucket: !Ref AthenaBucket
+      ConfgigMICTable: !Ref ConfgigMICRoleViewName
+      ConfigPCTable: !Ref ConfigPCViewName
+      PatchTable: !Ref PatchViewName
+      QuickSightUser: !Ref QuickSightUser
