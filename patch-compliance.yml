@@ -72,7 +72,7 @@ Metadata:
         default: Organization ID beginning o- , use CLI commmand to retrieve ID, aws organizations describe-organization
 Parameters:  
   MaintenanceWindowSchedule: 
-    Description: Use Cron: https://docs.aws.amazon.com/systems-manager/latest/userguide/reference-cron-and-rate-expressions.html
+    Description: Use Cron https://docs.aws.amazon.com/systems-manager/latest/userguide/reference-cron-and-rate-expressions.html
     MinLength: 1
     MaxLength: 256
     Type: String          
