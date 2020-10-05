@@ -173,7 +173,7 @@ def quicksight_handler(event, context):
         )
         logger.info ('MSCK REPAIR AWS_WINDOWS_UPDATE_TABLE: %s', response)
 
-    if event['RequestType'] == 'Create'
+    if event['RequestType'] == 'Create':
         # Managed Instance Compliance Check View
         response = athena.start_query_execution(
             QueryExecutionContext={
