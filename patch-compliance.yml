@@ -1136,6 +1136,9 @@ Resources:
       Timeout: 600
       Role: !GetAtt QuicksightLambdaExecutionRole.Arn    
   StackSet:
+    DependsOn:
+      - CustomResourceLambdaFunction
+      - LambdaTrigger
     Type: AWS::CloudFormation::StackSet
     Properties: 
       AdministrationRoleARN: !Ref StackSetAdministrationRoleARN
