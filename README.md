@@ -147,7 +147,7 @@ Before you choose which regions to deploy to, check which regions are enabled by
 Before creating any visualisations, it's important to understand the data.
 
 The two datasets are made up of a mixture of views and tables that have been left joined to the **configmic** view. This view contains all the instances in all the accounts and regions along with whether or not it's compliance status as a managed instance is compliant or not (configmiccompliancestatus) as per the **ec2-instance-managed-by-systems-manager** check in AWS Config. 
-* [https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-inventory-schema.html](AWS Systems Manager Inventory Schema)
+* [AWS Systems Manager Inventory Schema](https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-inventory-schema.html)
 * [AWS Config Schema](https://github.com/awslabs/aws-config-resource-schema)
 
 The **configpc** view contains the same instances and whether or not they are compliant (configpcstatus) with patching as per the **ec2-managedinstance-patch-compliance-status-check** in AWS Config. This is useful because it will continue to show the compliance status, even if the instance has been stopped. The latest data from Systems Manager will not include data from stopped instances.
