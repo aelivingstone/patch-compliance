@@ -17,7 +17,76 @@ Simplify installation, configuration and analysis of patch compliance informatio
 
 ## Code Examples
 
-#### SQL to create Config Managed Instance Compliance View
+### Lambda Function to tag EC2 Instances
+
+```python
+import boto3
+import json
+import logging
+import cfnresponse
+
+ssm = boto3.client('ssm')
+ec2 = boto3.client('ec2')
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)     
+
+def handler(event, context): 
+# set token to empty string
+token = ''
+
+# set response value to 0
+responseValue = 0
+
+while True:
+    # Limit to 50 due to describe limit
+    response = ssm.describe_instance_information(
+        MaxResults=50,
+        NextToken = token
+    )
+    
+    for instanceInfo in response['InstanceInformationList']:
+        # Create empty instances array
+        instances = []                  
+        instanceId = instanceInfo['InstanceId']
+        logger.info('InstanceID: ' + instanceId)  
+        instances.append(instanceId) 
+        platformType = instanceInfo['PlatformType']
+        logger.info('OS type: ' + platformType)
+        osName = instanceInfo['PlatformName']
+        logger.info('OS name: ' + osName)
+        osVersion = instanceInfo['PlatformVersion']
+        logger.info('OS version: ' + osVersion)
+        logger.info('---')
+        
+        responseValue += 1
+                            
+        tagResponse = ec2.create_tags(
+            Resources = instances,
+            Tags = [
+                {
+                    'Key': 'PlatformType',
+                    'Value': platformType
+                },
+                {
+                    'Key': 'OSName',
+                    'Value': osName
+                },    
+                {
+                    'Key': 'OSVersion',
+                    'Value': osVersion
+                },                   
+            ]
+        )           
+        
+    if 'NextToken' not in response: break    
+    token = response['NextToken']
+    logger.info('Token: ' + token) 
+responseData = {}
+responseData['InstancesTagged'] = responseValue
+cfnresponse.send(event, context, cfnresponse.SUCCESS, responseData, "CustomResourcePhysicalID")
+```
+
+### SQL to create Config Managed Instance Compliance View
 ```sql
 CREATE OR REPLACE VIEW ConfigMIC AS 
     SELECT MAX(dt) as ConfigMICDate, 
