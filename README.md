@@ -143,6 +143,29 @@ Before you choose which regions to deploy to, check which regions are enabled by
 
 ![Regions Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/regions.png)
 
+## The Data
+Before creating any visualisations, it's important to understand the data.
+
+The two datasets are made up of a mixture of views and tables that have been left joined to the **configmic** view. This view contains all the instances in all the accounts and regions along with whether or not it's compliance status as a managed instance is compliant or not (configmiccompliancestatus) as per the **ec2-instance-managed-by-systems-manager** check in AWS Config. 
+* [https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-inventory-schema.html](AWS Systems Manager Inventory Schema)
+* [AWS Config Schema](https://github.com/awslabs/aws-config-resource-schema)
+
+The **configpc** view contains the same instances and whether or not they are compliant (configpcstatus) with patching as per the **ec2-managedinstance-patch-compliance-status-check** in AWS Config. This is useful because it will continue to show the compliance status, even if the instance has been stopped. The latest data from Systems Manager will not include data from stopped instances.
+
+The **Patch** view is a filtered version of the **aws_compliance_item** where the compliance type is equal to **patch**. This is included because the QuickSight API does not currently support creating view using custom SQL queries. This data is from Systems Manager and contains information about each patch related to the instance.
+
+All of the other Athena tables represent data from Systems Manager. Not all of them are included in the datasets, but they have been included so that you can query directly against them in Athena or create your own datasets.
+
+The reason for creating multiple datasets is because joining many tables with a one to many relationship creates massive temporary tables that would timeout beyond all but the smallest data sets. 
+
+The first data set contains information about the instances and their patching status to an individual patch level. Because this uses Sysems Manager data, you cannot display individual patch data about instances that are stopped:
+
+![Patch Compliance Data Set Joins Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance_data_set_joins.png)
+
+The second data set just contains the compliance data from AWS Config, joined with instance tags, this allows you to create visualizations on patching and managed instance compliance based on tag keys and values so that you can view compliance based on owner, business unit,  workload, stack or whatever you are using for tagging.
+
+![Patch Compliance by Tag Data Set Joins Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance_by_tag_dataset_joins.png)
+
 ## Preparing QuickSight for your Datasets
 * Open QuickSight
 * Choose **Datasets**, you should see something like this:
@@ -164,26 +187,26 @@ Before you choose which regions to deploy to, check which regions are enabled by
 * Click **Select**
 * In the drop down below **Data set** you can now choose which dataset to use for creating visualizations
 
-## The Data
-The two datasets are made up of a mixture of views and tables that have been left joined to the **configmic** view. This view contains all the instances in all the accounts and regions along with whether or not it's compliance status as a managed instance is compliant or not (configmiccompliancestatus) as per the **ec2-instance-managed-by-systems-manager** check in AWS Config. 
-* [https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-inventory-schema.html](AWS Systems Manager Inventory Schema)
-* [AWS Config Schema](https://github.com/awslabs/aws-config-resource-schema)
+## Create Visualisations
 
-The **configpc** view contains the same instances and whether or not they are compliant (configpcstatus) with patching as per the **ec2-managedinstance-patch-compliance-status-check** in AWS Config. This is useful because it will continue to show the compliance status, even if the instance has been stopped. The latest data from Systems Manager will not include data from stopped instances.
+The first Visualisation we will create will use the currently selected **Patch Compliance by Tag** data set.
+* Click on **Configmiccompliancestatus** in the **Fields List**
+* Expand the **Field Wells** bar at the top by clicking on it
+* Drag and drop **configmicinstanceid** in to **Value** in the **Field wells**
+** You may notice that the numbers don't look right, this is because of the joins, we need to change the value
+* Select the dropdown arrow next to **configmicinstanceid** in the **Field wells**
+** **Go to Aggregate: Count** and select **Count distinct**
+* You now have a visualisation that shows how many instances are managed by AWS Systems Manager
+* To make this more useful, click **...** next to tagkey and select **Add filter for this field**
+** Click on **tagkey** under **Filters**
+** Deselect all by unchecking **Select All**
+** Select **NULL** (to show untagged instances) and a tag such as **Name**
+** Click **Apply** at the bottom
+* Click **Visualize** in the top right
+* Expand the **Field Wells** bar at the top by clicking on it
+* Drag and drop **tagvalue** in to **Group/Color** in the **Field wells**
+* Select a more appropriate **Visual Type** such as **Vertical Stacked Bar Chart**
 
-The **Patch** view is a filtered version of the **aws_compliance_item** where the compliance type is equal to **patch**. This is included because the QuickSight API does not currently support creating view using custom SQL queries. This data is from Systems Manager and contains information about each patch related to the instance.
-
-All of the other Athena tables represent data from Systems Manager. Not all of them are included in the datasets, but they have been included so that you can query directly against them in Athena or create your own datasets.
-
-The reason for creating multiple datasets is because joining many tables with a one to many relationship creates massive temporary tables that would timeout beyond all but the smallest data sets. 
-
-The first data set contains information about the instances and their patching status to an individual patch level. Because this uses Sysems Manager data, you cannot display individual patch data about instances that are stopped:
-
-![Patch Compliance Data Set Joins Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance_data_set_joins.png)
-
-The second data set just contains the compliance data from AWS Config, joined with instance tags, this allows you to create visualizations on patching and managed instance compliance based on tag keys and values so that you can view compliance based on owner, business unit,  workload, stack or whatever you are using for tagging.
-
-![Patch Compliance by Tag Data Set Joins Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance_by_tag_dataset_joins.png)
 
 ## Resources Created in Deployment Account
 Logical ID | Type
