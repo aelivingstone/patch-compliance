@@ -183,19 +183,25 @@ def quicksight_handler(event, context):
             QueryString="""
                 CREATE OR REPLACE VIEW %s AS 
                 SELECT MAX(dt) as ConfigMICDate, 
-                MAX(configurationItem.awsaccountid) as ConfigMICAccountID, 
-                MAX(configurationItem.awsregion) as ConfigMICRegion, 
-                split(configurationItem.resourceid,'/')[2] as ConfigMICInstanceID, 
-                MAX(instance.tags['name']) as ConfigMICName,
-                MAX(json_extract_scalar(instance.configuration, '$.state.name')) as ConfigMICState,
-                MAX(json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-instance-managed-by-systems-manager[^}.]*\\}'), '$.compliancetype')) as ConfigMICComplianceStatus
+                    configurationItem.awsaccountid as ConfigMICAccountID, 
+                    configurationItem.awsregion as ConfigMICRegion, 
+                    split(configurationItem.resourceid,'/')[2] as ConfigMICInstanceID, 
+                    instance.tags['name'] as ConfigMICName,
+                    json_extract_scalar(instance.configuration, '$.state.name') as ConfigMICState,
+                    json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-instance-managed-by-systems-manager[^}.]*\\}'), '$.compliancetype') as ConfigMICComplianceStatus
                 FROM %s.%s
                 CROSS JOIN UNNEST(configurationitems) AS t1(configurationItem)
                 CROSS JOIN UNNEST(configurationitems) AS t2(instance)
                 WHERE regexp_like(configurationItem.configuration, '\\{[^}{.]*ec2-instance-managed-by-systems-manager[^}.]*\\}')
-                AND configurationItem.resourcetype = 'AWS::Config::ResourceCompliance'
-                AND t2.instance.resourceID = split(configurationItem.resourceid,'/')[2]
-                GROUP BY split(configurationItem.resourceid,'/')[2]""" % (CONFIGMIC_TABLE, DATABASE, AWS_CONFIG_SNAPSHOT_TABLE),
+                    AND configurationItem.resourcetype = 'AWS::Config::ResourceCompliance'
+                    AND t2.instance.resourceID = split(configurationItem.resourceid,'/')[2]
+                GROUP BY split(configurationItem.resourceid,'/')[2],
+                    configurationItem.awsaccountid,
+                    configurationItem.awsregion,
+                    instance.tags['name'],
+                    json_extract_scalar(instance.configuration, '$.state.name'),
+                    json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-instance-managed-by-systems-manager[^}.]*\\}'), '$.compliancetype')
+                HAVING json_extract_scalar(instance.configuration, '$.state.name') <> ''""" % (CONFIGMIC_TABLE, DATABASE, AWS_CONFIG_SNAPSHOT_TABLE),
             ResultConfiguration={
                 'OutputLocation': ATHENA_S3_BUCKET,
             }
@@ -210,14 +216,14 @@ def quicksight_handler(event, context):
             QueryString="""
                 CREATE OR REPLACE VIEW %s AS
                 SELECT MAX(dt) as ConfigPCDate,
-                split(configurationItem.resourceid,'/')[3] as ConfigPCInstanceID,
-                MAX(json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-managedinstance-patch-compliance-status-check[^}.]*\\}'), '$.compliancetype')) as ConfigPCStatus
+                    split(configurationItem.resourceid,'/')[3] as ConfigPCInstanceID,
+                    json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-managedinstance-patch-compliance-status-check[^}.]*\\}'), '$.compliancetype') as ConfigPCStatus
                 FROM %s.%s
                 CROSS JOIN UNNEST(configurationitems) AS t1(configurationItem)
                 WHERE regexp_like(configurationItem.configuration, '\\{[^}{.]*ec2-managedinstance-patch-compliance-status-check[^}.]*\\}')
-                AND configurationItem.resourcetype = 'AWS::Config::ResourceCompliance'
-                GROUP BY split(configurationItem.resourceid,'/')[3]
-                ORDER BY MAX(dt) DESC""" % (CONFIGPC_TABLE, DATABASE, AWS_CONFIG_SNAPSHOT_TABLE),
+                    AND configurationItem.resourcetype = 'AWS::Config::ResourceCompliance'
+                GROUP BY split(configurationItem.resourceid,'/')[3],
+                    json_extract_scalar(regexp_extract(configurationItem.configuration, '\\{[^}{.]*ec2-managedinstance-patch-compliance-status-check[^}.]*\\}'), '$.compliancetype')""" % (CONFIGPC_TABLE, DATABASE, AWS_CONFIG_SNAPSHOT_TABLE),
             ResultConfiguration={
                 'OutputLocation': ATHENA_S3_BUCKET,
             }
