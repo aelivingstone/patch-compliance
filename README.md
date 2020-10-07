@@ -12,6 +12,9 @@ The information from AWS Config and AWS Systems Manager Inventory is collected i
 ### Managed Instance Compliance
 ![Managed Instance Compliance Dashboard](https://github.com/aelivingstone/patch-compliance/blob/master/images/managed_instances.png)
 
+### Patch Compliance
+![Patch Compliance Dashboard](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance.png)
+
 ## Technologies
 ![Technologies Diagram](https://github.com/aelivingstone/patch-compliance/blob/master/images/Technology.png)
 
@@ -223,7 +226,7 @@ Add some actions
 * Click **Actions** on the left
 * Click **Filter same-sheet visuals**
 
-Create a visualization to view the names of non-compliant instance only in a donut chart
+Create a visualization to view the names of non-compliant instances only in a donut chart
 * Select your current chart
 * Select **...** and click **Duplicate visual**
 * Right click over the **Non_Compliant** bar and click on **Focus only on NON_COMPLIANT**
@@ -233,21 +236,21 @@ Create a visualization to view the names of non-compliant instance only in a don
 * Select a more appropriate **Visual Type** such as **Donut Chart**
 * Click on the **Chart Title** to edit it
 
-Create a visualization to view the accounts of non-compliant instance only in a donut chart
+Create a visualization to view the accounts of non-compliant instances only in a donut chart
 * Select your previously created chart
 * Select **...** and click **Duplicate visual**
 * Expand the **Field Wells** bar at the top by clicking on it
 * Remove **tagvalue** from the **X axis**
 * Click on the **Chart Title** to edit it
 
-Create a visualization to view the regions of non-compliant instance only in a donut chart
+Create a visualization to view the regions of non-compliant instances only in a donut chart
 * Select your previously created chart
 * Select **...** and click **Duplicate visual**
 * Expand the **Field Wells** bar at the top by clicking on it
 * Remove **configmicaccountid** from the **X axis**
 * Click on the **Chart Title** to edit it
 
-Create a visualization to view the state of non-compliant instance only in a donut chart
+Create a visualization to view the state of non-compliant instances only in a donut chart
 * Select the account chart
 * Select **...** and click **Duplicate visual**
 * Expand the **Field Wells** bar at the top by clicking on it
@@ -263,6 +266,90 @@ Tidying up
 * Optionally select a different theme by Clicking on **Themes** and selecting your choice
 * At this point you can publish your dashboard by clicking **Share** and **publish dashboard
 * Expand **Advanced publish options** and optionally select **Enable ad hoc filtering** to enable the dashboard viewer to filter the published dashboard
+
+### Add a Patch Compliance Sheet
+* Go back to your Analysis
+* Click **+** next to your current sheet at the top
+* Select the **Patch Compliance Data set** from the drop down under **Data set**
+
+The first Visualisation we will create will use the currently selected **Patch Compliance by Tag** data set.
+* Click on **configpcstatus** in the **Fields List**
+* Expand the **Field Wells** bar at the top by clicking on it
+* Drag and drop **configmicinstanceid** in to **Value** in the **Field wells**
+** You may notice that the numbers don't look right, this is because of the joins, we need to change the value
+* Select the dropdown arrow next to **configmicinstanceid** in the **Field wells**
+** **Go to Aggregate: Count** and select **Count distinct**
+* You now have a visualisation that shows how many instances are compliant with your patch baselines
+* To make this more useful, click **...** next to tagkey and select **Add filter for this field**
+* Expand the **Field Wells** bar at the top by clicking on it
+* Drag and drop **instanceinformationplatformtype** in to **Group/Color** in the **Field wells**
+* Select a more appropriate **Visual Type** such as **Vertical Stacked Bar Chart**
+* Click on the **Chart Title** to edit it
+* The null values are instances that are not  managed by AWS Systems Manager, so it is not possible to determine the compliance levels
+
+Add Some Drilldown data
+* Drag **configmicaccountid** to the bottom of **X axis**
+* Drag **configmicregion** to the bottom of **X axis**
+* Drag **configmicinstanceid** to the bottom of **X axis**
+* Now you can click on the chart and drill down to account, region and instance level respectively
+
+Add some actions
+* Click **Actions** on the left
+* Click **Filter same-sheet visuals**
+
+Create a visualization to view the names of non-compliant instances only in a donut chart
+* Select your current chart
+* Select **...** and click **Duplicate visual**
+* Right click over the **Non_Compliant** bar and click on **Focus only on NON_COMPLIANT**
+* Expand the **Field Wells** bar at the top by clicking on it
+* Drag **instanceinformationplatformtype** to the **X axis** under **configmiccompliancestatus**
+* Remove **configmiccompliancestatus** from the **X axis**
+* Select a more appropriate **Visual Type** such as **Donut Chart**
+* Click on the **Chart Title** to edit it
+
+Create a visualization to view the accounts of non-compliant instances only in a donut chart
+* Select your previously created chart
+* Select **...** and click **Duplicate visual**
+* Expand the **Field Wells** bar at the top by clicking on it
+* Remove **tagvalue** from the **X axis**
+* Click on the **Chart Title** to edit it
+
+Create a visualization to view the regions of non-compliant instances only in a donut chart
+* Select your previously created chart
+* Select **...** and click **Duplicate visual**
+* Expand the **Field Wells** bar at the top by clicking on it
+* Remove **configmicaccountid** from the **X axis**
+* Click on the **Chart Title** to edit it
+
+Create a visualization to view the state of non-compliant instances only in a donut chart
+* Select the account chart
+* Select **...** and click **Duplicate visual**
+* Expand the **Field Wells** bar at the top by clicking on it
+* Add **configmicstate** to the top of the **X axis**
+* Click on the **Chart Title** to edit it
+
+Create a visualization to view the severity of non-compliant instances only in a donut chart
+* Select your previously created chart
+* Select **...** and click **Duplicate visual**
+* Expand the **Field Wells** bar at the top by clicking on it
+* Replace **configmicstate** with **patch severity** on the **X axis**
+* Click on the **Chart Title** to edit it
+
+Create a visualization of the top ten missing patches
+* Select the initial bar chart
+* Select **...** and click **Duplicate visual**
+* Right click over the **Non_Compliant** bar and click on **Focus only on NON_COMPLIANT**
+* Replace **configpcstatus** with **patch severity** on the **X axis**
+* Change **Visual Type** to **Horizontal stacked bar chart**
+* Click on the **cog icon - format visual**  
+* Expand **Y-Axis**
+* Enter **10** for **Number of data points displayed** 
+* Scroll to the bottom of the visual and right-click on **other**
+* Click **Hide "other" categories**
+* Select the drop down at the top by **configmicinstanceid**
+* Select **Sort by descending**
+
+Now replublish and replace the existing dashboard.
 
 ## Resources Created in Deployment Account
 Logical ID | Type
