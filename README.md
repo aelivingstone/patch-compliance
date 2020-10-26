@@ -349,7 +349,7 @@ Create a visualization of the top ten missing patches
 * Select the drop down at the top by **configmicinstanceid**
 * Select **Sort by descending**
 
-Now replublish and replace the existing dashboard.
+Now republish and replace the existing dashboard.
 
 ## Resources Created in Deployment Account
 Logical ID | Type
