@@ -166,7 +166,7 @@ All of the other Athena tables represent data from Systems Manager. Not all of t
 
 The reason for creating multiple datasets is because joining many tables with a one to many relationship creates massive temporary tables that would timeout beyond all but the smallest data sets. 
 
-The first data set contains information about the instances and their patching status to an individual patch level. Because this uses Sysems Manager data, you cannot display individual patch data about instances that are stopped:
+The first data set contains information about the instances and their patching status to an individual patch level. Because this uses Systems Manager data, you cannot display individual patch data about instances that are stopped:
 
 ![Patch Compliance Data Set Joins Screenshot](https://github.com/aelivingstone/patch-compliance/blob/master/images/patch_compliance_data_set_joins.png)
 
