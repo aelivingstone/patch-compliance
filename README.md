@@ -130,7 +130,7 @@ CREATE OR REPLACE VIEW ConfigMIC AS
 * AWS Systems Manager Inventory must not be enabled in target regions, the embedded Stackset will fail if it is enabled
 * [Setup QuickSight](https://docs.aws.amazon.com/quicksight/latest/user/setup-quicksight-for-existing-aws-account.html)
 * [Grant self-managed permissions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html) for StackSets
-* Target regions must be enabled, otherwise the embedded Stackset will fail. Check your regions using ```aws ec2 describe-regions | grep RegionName```
+* Target regions must be enabled, otherwise the embedded Stackset will fail. Check your regions using ```aws ec2 describe-regions | grep RegionName``` 
 ** See [Prerequisites for stack set operations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html)
 
 ## Deployment Instructions
