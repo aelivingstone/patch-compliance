@@ -131,7 +131,7 @@ CREATE OR REPLACE VIEW ConfigMIC AS
 * [Setup QuickSight](https://docs.aws.amazon.com/quicksight/latest/user/setup-quicksight-for-existing-aws-account.html)
 * [Grant self-managed permissions](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html) for StackSets
 * Target regions must be enabled, otherwise the embedded Stackset will fail. Check your regions using ```aws ec2 describe-regions | grep RegionName``` 
-** See [Prerequisites for stack set operations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html)
+  * See [Prerequisites for stack set operations](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html)
 
 ## Deployment Instructions
 Everything is embedded in to the **patch-compliance.yml** CloudFormation template, apart from the AWS Lambda function to create the QuickSight data source and datasets. The parameters in the CloudFormation template will allow you to reference the location of the uploaded function.
