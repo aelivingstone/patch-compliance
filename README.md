@@ -136,6 +136,15 @@ CREATE OR REPLACE VIEW ConfigMIC AS
 ## Deployment Instructions
 Everything is embedded in to the **patch-compliance.yml** CloudFormation template, apart from the AWS Lambda function to create the QuickSight data source and datasets. The parameters in the CloudFormation template will allow you to reference the location of the uploaded function.
 
+1. Download the repository and navigate to the directory
+1. Run the following commands:
+
+```bash
+python3 -m pip install --target ./quicksight requests
+cd quicksight
+zip -r ../quicksight.zip  .
+```
+
 1. Upload the AWS Lambda function **quicksight.zip** to an S3 Bucket in your administrator account
 1. Deploy patch-compliance.yml using CloudFormation
 1. Set QuickSight to [refresh your datasets on a schedule](https://docs.aws.amazon.com/quicksight/latest/user/refreshing-imported-data.html#schedule-data-refresh)
